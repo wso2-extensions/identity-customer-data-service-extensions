@@ -18,19 +18,26 @@
 
 package org.wso2.identity.cds.auth.handler;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
+import org.wso2.identity.cds.client.Utils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-
+/**
+ * Post authentication handler captures CDS related cookies and store them in the authentication context.
+ */
 public class CDSPostAuthnHandler extends AbstractPostAuthnHandler {
 
     public static final String PROFILE_ID = "profileId";
     public static final String CDS_PROFILE_ID_COOKIE = "cds_profile_id";
+
+    private static final Log LOG = LogFactory.getLog(CDSPostAuthnHandler.class);
 
     @Override
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request,
@@ -38,11 +45,16 @@ public class CDSPostAuthnHandler extends AbstractPostAuthnHandler {
                                              AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
+        if (!Utils.isCDSEnabled()){
+            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        }
+
         if (request.getCookies() != null) {
             for (javax.servlet.http.Cookie cookie : request.getCookies()) {
                 if (CDS_PROFILE_ID_COOKIE.equals(cookie.getName())) {
                     String val = cookie.getValue();
                     context.setProperty(PROFILE_ID, val);
+                    LOG.info("Setting profileId found from cds_profile_cookie in authentication context: " + val);
                     break;
                 }
             }

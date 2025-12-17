@@ -26,100 +26,88 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.identity.cds.client.CDSClient;
+import org.wso2.identity.cds.client.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_AUTHENTICATION;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.AUTHENTICATION_SUCCESS;
+
 /**
  * This class contains the implementation of the Authentication event listener.
- * This handles authentication success events.
+ * This handles authentication success events and communicates to CDS.
  */
 public class AuthEventListener extends AbstractEventHandler {
 
     private static final Log LOG = LogFactory.getLog(AuthEventListener.class);
-
+    public static final String PROFILE_ID = "profileId";
+    public static final String USER_ID = "userId";
+    public static final String TENANT_ID = "tenantId";
+    public static final String TENANT_DOMAIN = "tenant-domain";
+    public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
 
     @Override
     public void handleEvent(Event event) throws IdentityEventException {
 
+        if (!Utils.isCDSEnabled()){
+            return;
+        }
 
-        if ("AUTHENTICATION_SUCCESS".equals(event.getEventName())) {
-            LOG.info("Handling AUTHENTICATION_SUCCESS event");
-
+        if (AUTHENTICATION_SUCCESS.equals(event.getEventName())) {
             AuthenticationContext context = (AuthenticationContext) event.getEventProperties().get("context");
-
-
             if (context != null) {
-                String cookieValue = (String) context.getProperty("profileId");
-                LOG.info("Cookie captured during login: " + cookieValue);
+                String cookieValue = (String) context.getProperty(PROFILE_ID);
+                LOG.debug("Cookie captured during login: " + cookieValue);
+                if (cookieValue == null || cookieValue.isEmpty()) {
+                    LOG.debug("No profileId cookie found in the authentication context.");
+                    return;
+                }
+                try {
+                    String userId;
+                    userId = context.getSequenceConfig().getAuthenticatedUser().getUserId();
+                    Map<String, Object> profileSyncPayload = new HashMap<>();
+                    profileSyncPayload.put(PROFILE_ID, cookieValue);
+                    profileSyncPayload.put(USER_ID, userId);
+                    profileSyncPayload.put(TENANT_ID, context.getProperty(USER_TENANT_DOMAIN));
+                    String tenant = context.getTenantDomain();
+                    CDSClient.triggerIdentityDataSync(event.getEventName(), profileSyncPayload, tenant);
+                }
+                catch (UserIdNotFoundException e) {
+                    LOG.warn("User ID not found in authentication context.", e);
+                }
+            }
+        }
+
+
+        if (POST_AUTHENTICATION.equals(event.getEventName())) {
+            AuthenticationContext context = (AuthenticationContext) event.getEventProperties().get("context");
+            if (context != null) {
+                String tenant = context.getTenantDomain();
+                String cookieValue = (String) context.getProperty(PROFILE_ID);
                 if (cookieValue == null || cookieValue.isEmpty()) {
                     LOG.warn("No profileId cookie found in the authentication context.");
                     return;
                 }
                 try {
                     String userId;
-
                     userId = context.getSequenceConfig().getAuthenticatedUser().getUserId();
-
                     Map<String, Object> profileSyncPayload = new HashMap<>();
-
-                    profileSyncPayload.put("profileId", cookieValue);
-                    profileSyncPayload.put("userId", userId);
-                    profileSyncPayload.put("tenantId", context.getProperty("user-tenant-domain"));
-                    String tenant = context.getTenantDomain();
+                    profileSyncPayload.put(PROFILE_ID, cookieValue);
+                    profileSyncPayload.put(USER_ID, userId);
+                    profileSyncPayload.put(TENANT_ID, properties.get(TENANT_DOMAIN));
                     CDSClient.triggerIdentityDataSync(event.getEventName(), profileSyncPayload, tenant);
                 }
                 catch (UserIdNotFoundException e) {
-                    throw new RuntimeException(e);
+                    LOG.warn("User ID not found in authentication context.", e);
                 }
-
             }
         }
-
-//
-//        if ("POST_AUTHENTICATION".equals(event.getEventName())) {
-//            LOG.info("Handling POST_AUTHENTICATION event");
-//            AuthenticationContext context = (AuthenticationContext) event.getEventProperties().get("context");
-//
-//            for (Map.Entry<String, Object> entry : event.getEventProperties().entrySet()) {
-//                LOG.info("Event Property - Key: " + entry.getKey() + ", Value: " + entry.getValue());
-//            }
-//
-//            if (context != null) {
-//                String cookieValue = (String) context.getProperty("profileId");
-//                LOG.info("Cookie captured during login: " + cookieValue);
-//
-//                if (cookieValue == null || cookieValue.isEmpty()) {
-//                    LOG.warn("No profileId cookie found in the authentication context.");
-//                    return;
-//                }
-//                try {
-//
-//                    String userId;
-//
-//                    userId = context.getSequenceConfig().getAuthenticatedUser().getUserId();
-//
-//                    Map<String, Object> profileSyncPayload = new HashMap<>();
-//
-//                    profileSyncPayload.put("profileId", cookieValue);
-//                    profileSyncPayload.put("userId", userId);
-//                    profileSyncPayload.put("tenantId", properties.get("tenant-domain"));
-//
-//                    CDMClient.triggerIdentityDataSync(event.getEventName(), profileSyncPayload);
-//                }
-//                catch (UserIdNotFoundException e) {
-//                    throw new RuntimeException(e);
-//                } catch (Exception e) {
-//                    throw new RuntimeException(e);
-//                }
-//
-//            }
-//        }
     }
 
     @Override
     public String getName() {
-        return "cds.auth.listener";
+        return "cds.authentication.listener";
     }
 
 }

@@ -6,6 +6,7 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.wso2.identity.cds.event.handler.ClaimEventHandler;
 import org.wso2.identity.cds.event.handler.IdentityEventHandler;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 
@@ -20,17 +21,18 @@ public class IdentifyEventHandlerComponent {
     @Activate
     protected void activate(ComponentContext ctx) {
 
-        IdentityEventHandler eventHandler = new IdentityEventHandler();
-        ctx.getBundleContext().registerService(AbstractEventHandler.class.getName(), eventHandler, null);
-
-        log.info("CDS IdentifyEventHandler activated successfully.");
+        IdentityEventHandler identityEventHandler = new IdentityEventHandler();
+        ctx.getBundleContext().registerService(AbstractEventHandler.class.getName(), identityEventHandler, null);
+        ClaimEventHandler claimEventHandler = new ClaimEventHandler();
+        ctx.getBundleContext().registerService(AbstractEventHandler.class.getName(), claimEventHandler, null);
+        log.info("CDS EventHandlers activated successfully.");
     }
 
     @Deactivate
     protected void deactivate(ComponentContext ctx) {
 
         if (log.isDebugEnabled()) {
-            log.debug("CDS IdentifyEventHandler deactivated.");
+            log.debug("CDS EventHandlers deactivated.");
         }
     }
 }

@@ -18,23 +18,26 @@
 
 package org.wso2.identity.cds.client;
 
+import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+
 /**
  * This class contains utility methods for the Customer Data Management Service client.
  */
 public class Utils {
 
     public static String getCDMServiceURL() {
-        String cdmServiceURL = System.getProperty("cds.service.url");
-        if (cdmServiceURL == null || cdmServiceURL.isEmpty()) {
-            cdmServiceURL = "http://localhost:8900";
-        }
-        return cdmServiceURL;
+        return IdentityUtil.getProperty("CustomerDataService.ServerURL");
     }
 
     public static String getBase64EncodedCredentials() {
-//        String username = System.getProperty("cds.service.username", "admin");
-//        String password = System.getProperty("cds.service.password", "admin");
-        String credentials = "admin" + ":" + "admin";
+        String credentials =  IdentityUtil.getProperty("CustomerDataService.AdminUsername")+ ":" +
+                IdentityUtil.getProperty("CustomerDataService.AdminPassword");
         return java.util.Base64.getEncoder().encodeToString(credentials.getBytes());
+    }
+
+    public static boolean isCDSEnabled() {
+        String cdsEnabled = IdentityUtil.getProperty("CustomerDataService.Enable");
+        return Boolean.parseBoolean(cdsEnabled);
     }
 }

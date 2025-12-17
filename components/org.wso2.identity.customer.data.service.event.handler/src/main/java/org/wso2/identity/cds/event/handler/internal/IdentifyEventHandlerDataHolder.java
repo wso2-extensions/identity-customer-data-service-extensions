@@ -33,5 +33,4 @@ public class IdentifyEventHandlerDataHolder {
         return instance;
     }
 
-
 }

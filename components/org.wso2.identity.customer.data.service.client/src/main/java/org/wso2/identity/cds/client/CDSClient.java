@@ -29,7 +29,6 @@ import org.apache.http.impl.client.HttpClients;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -38,26 +37,25 @@ import java.util.Map;
 public class CDSClient {
 
     private static final Log log = LogFactory.getLog(CDSClient.class);
-
-    private static final String PROFILE_SYNC_API_TEMPLATE = "http://localhost:8900/t/{tenant}/api/v1/profiles/sync";
-    private static final String PROFILE_SCHEMA_API_URL_TEMPLATE = "http://localhost:8900/t/{tenant}/api/v1/profile-schema/";
+    private static final String PROFILE_SYNC_API = "%s/t/%s/cds/api/v1/profiles/sync";
+    private static final String CONTENT_TYPE = "Content-Type";
+    private static final String AUTHORIZATION = "Authorization";
+    private static final String APPLICATION_JSON = "application/json";
+    private static final String EVENT = "event";
 
     public static void triggerIdentityDataSync(String event, Map<String, Object> payload, String tenant) {
 
         try {
             ObjectMapper mapper = new ObjectMapper();
-            payload.put("event", event);
+            payload.put(EVENT, event);
             String json = mapper.writeValueAsString(payload);
-            //todo: check if it requires authorization. May be we can have another superteannt app and then use its token here.
-
-            String profileSyncUrl = PROFILE_SYNC_API_TEMPLATE.replace("{tenant}", tenant);
-            log.info("Triggering Identity Data Sync - URL: " + profileSyncUrl);
+            String profileSyncUrl = buildProfileSyncAPI(tenant);
 
             try (CloseableHttpClient client = HttpClients.createDefault()) {
                 HttpPost httpPost = new HttpPost(profileSyncUrl);
                 httpPost.setEntity(new StringEntity(json, StandardCharsets.UTF_8));
-                httpPost.setHeader("Content-Type", "application/json");
-                httpPost.setHeader("Authorization", "Basic " + Utils.getBase64EncodedCredentials());
+                httpPost.setHeader(CONTENT_TYPE, APPLICATION_JSON);
+                httpPost.setHeader(AUTHORIZATION, "Basic " + Utils.getBase64EncodedCredentials());
 
                 try (CloseableHttpResponse response = client.execute(httpPost)) {
                     int statusCode = response.getStatusLine().getStatusCode();
@@ -69,7 +67,6 @@ public class CDSClient {
                     }
 
                     log.info("CDM sync response status: " + statusCode + ", body: " + responseBody);
-
                     if (statusCode != 200 && statusCode != 204) {
                         log.warn("CDM sync failed for identity data. Status: " + statusCode);
                     }
@@ -86,21 +83,17 @@ public class CDSClient {
 
         try {
             ObjectMapper mapper = new ObjectMapper();
-            payload.put("event", event);
+            payload.put(EVENT, event);
             String json = mapper.writeValueAsString(payload);
-
-            String profileSyncUrl = PROFILE_SYNC_API_TEMPLATE.replace("{tenant}", tenant);
-            log.info("Triggering Profile Sync - URL: " + profileSyncUrl);
-
+            String profileSyncUrl = buildProfileSyncAPI(tenant);
             try (CloseableHttpClient client = HttpClients.createDefault()) {
                 HttpPost httpPost = new HttpPost(profileSyncUrl);
                 httpPost.setEntity(new StringEntity(json, StandardCharsets.UTF_8));
-                httpPost.setHeader("Content-Type", "application/json");
-                httpPost.setHeader("Authorization", "Basic " + Utils.getBase64EncodedCredentials());
+                httpPost.setHeader(CONTENT_TYPE, APPLICATION_JSON);
+                httpPost.setHeader(AUTHORIZATION, "Basic " + Utils.getBase64EncodedCredentials());
 
                 try (CloseableHttpResponse response = client.execute(httpPost)) {
                     int statusCode = response.getStatusLine().getStatusCode();
-
                     String responseBody = "";
                     if (response.getEntity() != null) {
                         responseBody = new String(response.getEntity().getContent().readAllBytes(),
@@ -108,9 +101,8 @@ public class CDSClient {
                     }
 
                     log.info("CDM sync response status: " + statusCode + ", body: " + responseBody);
-
                     if (statusCode != 200 && statusCode != 204) {
-                        throw new RuntimeException("Failed to sync profile data to CDS. Status: " +
+                        log.error("Failed to sync profile data to CDS. Status: " +
                                 statusCode + ", Response: " + responseBody);
                     }
                 }
@@ -124,50 +116,12 @@ public class CDSClient {
         }
     }
 
-    public static void triggerSchemaDataSync(String event, String tenantDomain, Map <String, Object> payload) {
-
-        try {
-            Map<String, Object> profileSyncPayload = new HashMap<>();
-            profileSyncPayload.put("event", event);
-            profileSyncPayload.put("tenantDomain", tenantDomain);
-            profileSyncPayload.put("data", payload);
-
-            ObjectMapper mapper = new ObjectMapper();
-            String json = mapper.writeValueAsString(profileSyncPayload);
-
-            String schemaSyncUrl = PROFILE_SCHEMA_API_URL_TEMPLATE.replace("{tenant}", tenantDomain);
-            log.info("Triggering Schema Data Sync - URL: " + schemaSyncUrl);
-
-            try (CloseableHttpClient client = HttpClients.createDefault()) {
-                HttpPost httpPost = new HttpPost(schemaSyncUrl);
-                httpPost.setEntity(new StringEntity(json, StandardCharsets.UTF_8));
-                httpPost.setHeader("Content-Type", "application/json");
-                httpPost.setHeader("Authorization", "Basic " + Utils.getBase64EncodedCredentials());
-
-
-                try (CloseableHttpResponse response = client.execute(httpPost)) {
-                    int statusCode = response.getStatusLine().getStatusCode();
-
-                    String responseBody = "";
-                    if (response.getEntity() != null) {
-                        responseBody = new String(response.getEntity().getContent().readAllBytes(),
-                                StandardCharsets.UTF_8);
-                    }
-
-                    log.info("CDM sync response status: " + statusCode + ", body: " + responseBody);
-
-                    if (statusCode != 200 && statusCode != 204) {
-                        throw new RuntimeException("Failed to sync schema data to CDS. Status: " +
-                                statusCode + ", Response: " + responseBody);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            log.error("I/O error occurred while triggering schema data sync for tenant: " + tenantDomain, e);
-        } catch (RuntimeException e) {
-            log.error("Schema data sync failed for tenant: " + tenantDomain + " due to business logic error.", e);
-        } catch (Exception e) {
-            log.error("Unexpected error occurred while triggering schema data sync for tenant: " + tenantDomain, e);
-        }
+    // Build the Profile Sync API URL
+    private static String buildProfileSyncAPI(String tenant) {
+        return String.format(
+                PROFILE_SYNC_API,
+                Utils.getCDMServiceURL(),
+                tenant
+        );
     }
 }

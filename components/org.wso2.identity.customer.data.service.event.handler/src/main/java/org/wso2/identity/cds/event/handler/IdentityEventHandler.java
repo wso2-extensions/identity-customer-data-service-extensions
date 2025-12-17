@@ -18,128 +18,108 @@
 
 package org.wso2.identity.cds.event.handler;
 
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.identity.cds.client.CDSClient;
+import org.wso2.identity.cds.client.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.*;
+import static org.wso2.identity.cds.event.handler.Constants.*;
 
 /**
  * This class handles identity events and triggers profile syncs with the Customer Data Management Service.
  */
 public class IdentityEventHandler extends AbstractEventHandler {
 
+    private static final org.apache.commons.logging.Log LOG = LogFactory.getLog(IdentityEventHandler.class);
+
     @Override
     public void handleEvent(Event event) throws IdentityEventException {
 
+        if (!Utils.isCDSEnabled()){
+            return;
+        }
+
         Map<String, Object> properties = event.getEventProperties();
         String eventName = event.getEventName();
-
-
-        if ("POST_ADD_USER".equals(eventName)) {
+        if (POST_ADD_USER.equals(eventName)) {
             try {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> userClaims = (Map<String, Object>) properties.get("USER_CLAIMS");
-
-                System.out.println("==== Event: " + eventName + " ====");
-
+                Map<String, Object> userClaims = (Map<String, Object>) properties.get(USER_CLAIMS_PROPERTY);
                 if (userClaims == null || userClaims.isEmpty()) {
-                    throw new IdentityEventException("No USER_CLAIMS found in event properties.");
+                    LOG.error("No USER_CLAIMS found in event properties.");
                 }
 
                 // Filter userClaims to only include keys that start with "http://wso2.org/claims/"
                 Map<String, Object> filteredUserClaims = userClaims.entrySet().stream()
-                        .filter(entry -> entry.getKey().startsWith("http://wso2.org/claims/"))
-                        .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll);
+                        .filter(entry -> entry.getKey().startsWith(WSO2_CLAIMS_DIALECT))
+                        .collect(HashMap::new, (m, e) ->
+                                m.put(e.getKey(), e.getValue()), HashMap::putAll);
 
 
-                String profileId = (String) filteredUserClaims.get("http://wso2.org/claims/profileId");
-
-
-                String userId = (String) filteredUserClaims.get("http://wso2.org/claims/userid");
-
+                String profileId = (String) filteredUserClaims.get(PROFILE_ID_CLAIM);
+                String userId = (String) filteredUserClaims.get(USER_ID_CLAIM);
                 Map<String, Object> profileSyncPayload = new HashMap<>();
-                profileSyncPayload.put("profileId", profileId);
-                profileSyncPayload.put("userId", userId);
-                profileSyncPayload.put("claims", new HashMap<>(filteredUserClaims));
-                profileSyncPayload.put("tenantId", properties.get("tenant-domain"));
-                String tenant = (String) properties.get("tenant-domain");
-
+                profileSyncPayload.put(PROFILE_ID, profileId);
+                profileSyncPayload.put(USER_ID, userId);
+                profileSyncPayload.put(CLAIMS, new HashMap<>(filteredUserClaims));
+                profileSyncPayload.put(TENANT_ID, properties.get(TENANT_DOMAIN));
+                String tenant = (String) properties.get(TENANT_DOMAIN);
                 if (profileId == null || profileId.isEmpty()) {
-//                    System.out.println("No profileId found. Skipping CDM sync.");
-                    CDSClient.triggerProfileSync("POST_ADD_USER", profileSyncPayload, tenant);
+                    CDSClient.triggerProfileSync(POST_ADD_USER, profileSyncPayload, tenant);
                     return;
                 } else {
                     CDSClient.triggerIdentityDataSync(eventName, profileSyncPayload, tenant);
                 }
-
-                System.out.println("Profile sync pushed successfully for profileId: " + profileId);
-
             } catch (Exception e) {
-                throw new IdentityEventException("Error handling event for CDM sync.", e);
+                LOG.debug("Error handling event for CDM sync.", e);
             }
         }
 
-        //todo: for existing this will only does the update. So there is a chance that the existing claims are not synced. We need to handle that scenario as well.
-        if ("POST_SET_USER_CLAIM_VALUES_WITH_ID".equals(eventName) || "POST_SET_USER_CLAIM_VALUE_WITH_ID".equals(eventName)) {
+        if (POST_SET_USER_CLAIM_VALUES_WITH_ID.equals(eventName) || POST_SET_USER_CLAIM_VALUE_WITH_ID.equals(eventName)) {
             try {
                 @SuppressWarnings("unchecked")
-                Map<String, Object> userClaims = (Map<String, Object>) properties.get("USER_CLAIMS");
+                Map<String, Object> userClaims = (Map<String, Object>) properties.get(USER_CLAIMS_PROPERTY);
 
                 if (userClaims != null) {
-
-
-                    for (Map.Entry<String, Object> entry : userClaims.entrySet()) {
-                        System.out.println("Key: " + entry.getKey() + ", Value: " + entry.getValue() + ", Type: " + entry.getValue().getClass());
-                    }
-
                     if (userClaims.isEmpty()) {
                         throw new IdentityEventException("No USER_CLAIMS found in event properties.");
                     }
 
-                    String userId = properties.get("USER_ID").toString();
-
+                    String userId = properties.get(USER_ID_PROPERTY).toString();
                     // Filter userClaims to only include keys that start with "http://wso2.org/claims/"
                     Map<String, Object> filteredUserClaims = userClaims.entrySet().stream()
-                            .filter(entry -> entry.getKey().startsWith("http://wso2.org/claims/"))
+                            .filter(entry -> entry.getKey().startsWith(WSO2_CLAIMS_DIALECT))
                             .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll);
 
-
                     Map<String, Object> profileSyncPayload = new HashMap<>();
-                    profileSyncPayload.put("userId", userId);
-                    profileSyncPayload.put("claims", new HashMap<>(filteredUserClaims));
-                    profileSyncPayload.put("tenantId", properties.get("tenant-domain"));
-                    String tenant = (String) properties.get("tenant-domain");
-
-
+                    profileSyncPayload.put(USER_ID, userId);
+                    profileSyncPayload.put(CLAIMS, new HashMap<>(filteredUserClaims));
+                    profileSyncPayload.put(TENANT_ID, properties.get(TENANT_DOMAIN));
+                    String tenant = (String) properties.get(TENANT_DOMAIN);
                     CDSClient.triggerIdentityDataSync(eventName, profileSyncPayload, tenant);
-
-                    System.out.println("Profile sync pushed successfully for userId: " + userId);
                 }
 
             } catch (Exception e) {
-                throw new IdentityEventException("Error handling event for CDM sync.", e);
+                LOG.debug("Error handling event for CDM sync.", e);
             }
         }
 
-        if ("POST_DELETE_USER_WITH_ID".equals(eventName)) {
-            for (Map.Entry<String, Object> entry : properties.entrySet()) {
-                System.out.println("Key: " + entry.getKey() + ", Value: " + entry.getValue());
-            }
+        if (POST_DELETE_USER_WITH_ID.equals(eventName)) {
             try {
-            String userId = properties.get("USER_ID").toString();
+            String userId = properties.get(USER_ID_PROPERTY).toString();
             Map<String, Object> profileSyncPayload = new HashMap<>();
-            profileSyncPayload.put("userId", userId);
-            profileSyncPayload.put("tenantId", properties.get("tenant-domain"));
-            String tenant = (String) properties.get("tenant-domain");
+            profileSyncPayload.put(USER_ID, userId);
+            profileSyncPayload.put(TENANT_ID, properties.get(TENANT_DOMAIN));
+            String tenant = (String) properties.get(TENANT_DOMAIN);
             CDSClient.triggerIdentityDataSync(eventName, profileSyncPayload, tenant);
-            return;
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                LOG.debug("Error handling event for CDM sync.", e);
             }
-
         }
     }
 

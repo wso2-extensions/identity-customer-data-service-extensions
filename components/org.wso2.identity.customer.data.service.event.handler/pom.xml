@@ -50,6 +50,7 @@
                             org.osgi.framework;version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component;version="${osgi.service.component.imp.pkg.version.range}",
                             org.apache.commons.logging;version="${commons-logging.osgi.version.range}",
+                            org.wso2.carbon.identity.core.util.*;version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.event.*;version="${carbon.identity.framework.imp.pkg.version.range}"
                         </Import-Package>
                     </instructions>
@@ -59,6 +60,10 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.core</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.event</artifactId>

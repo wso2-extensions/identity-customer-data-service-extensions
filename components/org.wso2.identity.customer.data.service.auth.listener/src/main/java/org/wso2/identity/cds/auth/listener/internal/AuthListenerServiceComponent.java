@@ -58,35 +58,4 @@ public class AuthListenerServiceComponent {
             LOG.debug("Schema sync listener deactivated");
         }
     }
-
-    @Reference(
-            name = "RealmService",
-            service = RealmService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRealmService")
-    protected void setRealmService(RealmService realmService) {
-
-        AuthListenerServiceDataHolder.setRealmService(realmService);
-    }
-
-    protected void unsetRealmService(RealmService realmService) {
-
-        AuthListenerServiceDataHolder.setRealmService(null);
-    }
-
-    @Reference(name = "identity.organization.management.component",
-            service = OrganizationManager.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetOrganizationManager")
-    protected void setOrganizationManager(OrganizationManager organizationManager) {
-
-        AuthListenerServiceDataHolder.setOrgSchemaSyncManager(organizationManager);
-    }
-
-    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
-
-        AuthListenerServiceDataHolder.setOrgSchemaSyncManager(null);
-    }
 }

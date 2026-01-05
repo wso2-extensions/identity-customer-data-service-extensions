@@ -54,7 +54,10 @@ public class CDSPostAuthnHandler extends AbstractPostAuthnHandler {
                 if (CDS_PROFILE_ID_COOKIE.equals(cookie.getName())) {
                     String val = cookie.getValue();
                     context.setProperty(PROFILE_ID, val);
-                    LOG.info("Setting profileId found from cds_profile_cookie in authentication context: " + val);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Setting profileId found from cds_profile_cookie in authentication context: " +
+                                val);
+                    }
                     break;
                 }
             }

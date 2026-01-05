@@ -38,6 +38,7 @@ public class CDSClient {
 
     private static final Log log = LogFactory.getLog(CDSClient.class);
     private static final String PROFILE_SYNC_API = "%s/t/%s/cds/api/v1/profiles/sync";
+    private static final String PROFILE_SCHEMA_SYNC_API = "%s/t/%s/cds/api/v1/profile-schema/sync";
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String AUTHORIZATION = "Authorization";
     private static final String APPLICATION_JSON = "application/json";
@@ -68,7 +69,7 @@ public class CDSClient {
 
                     log.info("CDM sync response status: " + statusCode + ", body: " + responseBody);
                     if (statusCode != 200 && statusCode != 204) {
-                        log.warn("CDM sync failed for identity data. Status: " + statusCode);
+                        log.info("CDM sync failed for identity data. Status: " + statusCode);
                     }
                 }
             }
@@ -102,7 +103,7 @@ public class CDSClient {
 
                     log.info("CDM sync response status: " + statusCode + ", body: " + responseBody);
                     if (statusCode != 200 && statusCode != 204) {
-                        log.error("Failed to sync profile data to CDS. Status: " +
+                        log.info("Failed to sync profile data to CDS. Status: " +
                                 statusCode + ", Response: " + responseBody);
                     }
                 }
@@ -116,10 +117,54 @@ public class CDSClient {
         }
     }
 
+    public static void triggerProfileSchemasync( Map<String, Object> payload, String tenant) {
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String json = mapper.writeValueAsString(payload);
+            String profileSyncUrl = buildProfileSchemaSyncAPI(tenant);
+            try (CloseableHttpClient client = HttpClients.createDefault()) {
+                HttpPost httpPost = new HttpPost(profileSyncUrl);
+                httpPost.setEntity(new StringEntity(json, StandardCharsets.UTF_8));
+                httpPost.setHeader(CONTENT_TYPE, APPLICATION_JSON);
+                httpPost.setHeader(AUTHORIZATION, "Basic " + Utils.getBase64EncodedCredentials());
+
+                try (CloseableHttpResponse response = client.execute(httpPost)) {
+                    int statusCode = response.getStatusLine().getStatusCode();
+                    String responseBody = "";
+                    if (response.getEntity() != null) {
+                        responseBody = new String(response.getEntity().getContent().readAllBytes(),
+                                StandardCharsets.UTF_8);
+                    }
+
+                    log.info("CDM sync response status: " + statusCode + ", body: " + responseBody);
+                    if (statusCode != 200 && statusCode != 204) {
+                        log.info("Failed to sync profile schema data to CDS. Status: " +
+                                statusCode + ", Response: " + responseBody);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            log.error("I/O error occurred while triggering profile schema sync for tenant: " + tenant, e);
+        } catch (RuntimeException e) {
+            log.error("Profile schema sync failed for tenant: " + tenant, e);
+        } catch (Exception e) {
+            log.error("Unexpected error occurred while triggering profile schema sync for tenant: " + tenant, e);
+        }
+    }
+
     // Build the Profile Sync API URL
     private static String buildProfileSyncAPI(String tenant) {
         return String.format(
                 PROFILE_SYNC_API,
+                Utils.getCDMServiceURL(),
+                tenant
+        );
+    }
+
+    private static String buildProfileSchemaSyncAPI(String tenant) {
+        return String.format(
+                PROFILE_SCHEMA_SYNC_API,
                 Utils.getCDMServiceURL(),
                 tenant
         );

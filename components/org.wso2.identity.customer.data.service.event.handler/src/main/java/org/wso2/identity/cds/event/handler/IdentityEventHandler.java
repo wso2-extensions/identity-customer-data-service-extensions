@@ -51,7 +51,7 @@ public class IdentityEventHandler extends AbstractEventHandler {
             try {
                 Map<String, Object> userClaims = (Map<String, Object>) properties.get(USER_CLAIMS_PROPERTY);
                 if (userClaims == null || userClaims.isEmpty()) {
-                    LOG.error("No USER_CLAIMS found in event properties.");
+                    LOG.info("No USER_CLAIMS found in event properties.");
                 }
 
                 // Filter userClaims to only include keys that start with "http://wso2.org/claims/"

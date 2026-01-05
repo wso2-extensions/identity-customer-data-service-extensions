@@ -24,12 +24,10 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
-import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.identity.cds.auth.handler.CDSPostAuthnHandler;
 
-@Component(name = "org.wso2.identity.auth.handler",
+@Component(name = "org.wso2.identity.cds.auth.handler",
         immediate = true)
 public class CDSPostAuthHandlerComponent {
 
@@ -40,31 +38,14 @@ private static final Log log = LogFactory.getLog(CDSPostAuthHandlerComponent.cla
 
         CDSPostAuthnHandler cdsPostAuthnHandler  = new CDSPostAuthnHandler();
         ctx.getBundleContext().registerService(PostAuthenticationHandler.class.getName(), cdsPostAuthnHandler, null);
-
-
-        log.info("Custom event handler activated successfully.");
+        log.info("CDS Post Authentication handler activated successfully.");
     }
 
     @Deactivate
     protected void deactivate(ComponentContext ctx){
         if(log.isDebugEnabled()){
-            log.debug("Custom event handler is deactivated");
+            log.debug("CDS Post Authentication handler is deactivated");
         }
-    }
-
-    @Reference(
-            name = "realm.service",
-            service = RealmService.class,
-            cardinality = org.osgi.service.component.annotations.ReferenceCardinality.MANDATORY,
-            policy = org.osgi.service.component.annotations.ReferencePolicy.DYNAMIC,
-            unbind = "unsetRealmService"
-    )
-    protected void setRealmService(RealmService realmService) {
-        CDSPostAuthHandlerDataHolder.getInstance().setRealmService(realmService);
-    }
-
-    protected void unsetRealmService(RealmService realmService) {
-        CDSPostAuthHandlerDataHolder.getInstance().setRealmService(null);
     }
 }
 

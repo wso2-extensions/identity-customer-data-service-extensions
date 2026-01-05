@@ -19,6 +19,7 @@
 package org.wso2.identity.cds.event.handler;
 
 public class Constants {
+    public static final String EVENT = "event";
     public static final String PROFILE_ID = "profileId";
     public static final String USER_ID = "userId";
     public static final String USER_ID_PROPERTY = "USER_ID";

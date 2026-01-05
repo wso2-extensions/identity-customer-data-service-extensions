@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -33,7 +33,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.identity.cds.auth.listener.AuthEventListener;
 
 /**
- * This class contains the implementation of the service component of the TenantAssociationManagement.
+ * This class contains the implementation of the service component of the authentication event listener.
  */
 @Component(
         name = "org.wso2.carbon.identity.cds.auth.listener",
@@ -48,14 +48,14 @@ public class AuthListenerServiceComponent {
 
         AuthEventListener authEventListener = new AuthEventListener();
         context.getBundleContext().registerService(AbstractEventHandler.class.getName(), authEventListener, null);
-        LOG.debug("Schema sync listener activated");
+        LOG.debug("CDS post authentication listener activated");
     }
 
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Schema sync listener deactivated");
+            LOG.debug("CDS post authentication listener deactivated");
         }
     }
 }

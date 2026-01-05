@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -76,7 +76,7 @@ public class IdentityEventHandler extends AbstractEventHandler {
                     CDSClient.triggerIdentityDataSync(eventName, profileSyncPayload, tenant);
                 }
             } catch (Exception e) {
-                LOG.debug("Error handling event for CDM sync.", e);
+                LOG.debug("Error handling event for CDS sync.", e);
             }
         }
 
@@ -105,7 +105,7 @@ public class IdentityEventHandler extends AbstractEventHandler {
                 }
 
             } catch (Exception e) {
-                LOG.debug("Error handling event for CDM sync.", e);
+                LOG.debug("Error handling event for CDS sync.", e);
             }
         }
 
@@ -118,7 +118,7 @@ public class IdentityEventHandler extends AbstractEventHandler {
             String tenant = (String) properties.get(TENANT_DOMAIN);
             CDSClient.triggerIdentityDataSync(eventName, profileSyncPayload, tenant);
             } catch (Exception e) {
-                LOG.debug("Error handling event for CDM sync.", e);
+                LOG.debug("Error handling event for CDS sync.", e);
             }
         }
     }

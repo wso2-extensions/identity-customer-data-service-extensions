@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -67,9 +67,9 @@ public class CDSClient {
                                 StandardCharsets.UTF_8);
                     }
 
-                    log.info("CDM sync response status: " + statusCode + ", body: " + responseBody);
+                    log.info("CDS sync response status: " + statusCode + ", body: " + responseBody);
                     if (statusCode != 200 && statusCode != 204) {
-                        log.info("CDM sync failed for identity data. Status: " + statusCode);
+                        log.info("CDS sync failed for identity data. Status: " + statusCode);
                     }
                 }
             }
@@ -101,7 +101,7 @@ public class CDSClient {
                                 StandardCharsets.UTF_8);
                     }
 
-                    log.info("CDM sync response status: " + statusCode + ", body: " + responseBody);
+                    log.info("CDS sync response status: " + statusCode + ", body: " + responseBody);
                     if (statusCode != 200 && statusCode != 204) {
                         log.info("Failed to sync profile data to CDS. Status: " +
                                 statusCode + ", Response: " + responseBody);
@@ -137,7 +137,7 @@ public class CDSClient {
                                 StandardCharsets.UTF_8);
                     }
 
-                    log.info("CDM sync response status: " + statusCode + ", body: " + responseBody);
+                    log.info("CDS sync response status: " + statusCode + ", body: " + responseBody);
                     if (statusCode != 200 && statusCode != 204) {
                         log.info("Failed to sync profile schema data to CDS. Status: " +
                                 statusCode + ", Response: " + responseBody);
@@ -157,7 +157,7 @@ public class CDSClient {
     private static String buildProfileSyncAPI(String tenant) {
         return String.format(
                 PROFILE_SYNC_API,
-                Utils.getCDMServiceURL(),
+                Utils.getCDSServiceURL(),
                 tenant
         );
     }
@@ -165,7 +165,7 @@ public class CDSClient {
     private static String buildProfileSchemaSyncAPI(String tenant) {
         return String.format(
                 PROFILE_SCHEMA_SYNC_API,
-                Utils.getCDMServiceURL(),
+                Utils.getCDSServiceURL(),
                 tenant
         );
     }

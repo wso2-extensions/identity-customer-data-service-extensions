@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,7 +18,6 @@
 
 package org.wso2.identity.cds.client;
 
-import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 /**
@@ -26,7 +25,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
  */
 public class Utils {
 
-    public static String getCDMServiceURL() {
+    public static String getCDSServiceURL() {
         return IdentityUtil.getProperty("CustomerDataService.ServerURL");
     }
 

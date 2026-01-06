@@ -24,12 +24,7 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
-import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
-import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.identity.cds.auth.listener.AuthEventListener;
 
 /**
@@ -47,7 +42,8 @@ public class AuthListenerServiceComponent {
     protected void activate(ComponentContext context) {
 
         AuthEventListener authEventListener = new AuthEventListener();
-        context.getBundleContext().registerService(AbstractEventHandler.class.getName(), authEventListener, null);
+        context.getBundleContext().registerService(AbstractEventHandler.class.getName(), authEventListener,
+                null);
         LOG.debug("CDS post authentication listener activated");
     }
 

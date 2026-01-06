@@ -24,14 +24,15 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
-import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.identity.cds.client.CDSClient;
 import org.wso2.identity.cds.client.Utils;
-import static org.wso2.identity.cds.event.handler.Constants.*;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.wso2.identity.cds.event.handler.Constants.EVENT;
+import static org.wso2.identity.cds.event.handler.Constants.TENANT_ID;
 
 /**
  * This class handles identity events and triggers profile syncs with the Customer Data Management Service.
@@ -54,7 +55,7 @@ public class ClaimEventHandler extends AbstractEventHandler {
                 "POST_DELETE_EXTERNAL_CLAIM".equals(eventName) || "POST_UPDATE_LOCAL_CLAIM".equals(eventName)) {
             int tenantId = (int) event.getEventProperties().get("tenantId");
             String tenantDomain;
-            tenantDomain= IdentityTenantUtil.getTenantDomain(tenantId);
+            tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
             Map<String, Object> profileSchemaSyncPayload = new HashMap<>();
             profileSchemaSyncPayload.put(EVENT, eventName);
             profileSchemaSyncPayload.put(TENANT_ID, tenantDomain);

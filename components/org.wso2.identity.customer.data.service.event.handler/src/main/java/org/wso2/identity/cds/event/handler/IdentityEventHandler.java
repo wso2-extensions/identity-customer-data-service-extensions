@@ -28,8 +28,20 @@ import org.wso2.identity.cds.client.Utils;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.*;
-import static org.wso2.identity.cds.event.handler.Constants.*;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_ADD_USER;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_DELETE_USER_WITH_ID;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_SET_USER_CLAIM_VALUES_WITH_ID;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_SET_USER_CLAIM_VALUE_WITH_ID;
+import static org.wso2.identity.cds.event.handler.Constants.CLAIMS;
+import static org.wso2.identity.cds.event.handler.Constants.PROFILE_ID;
+import static org.wso2.identity.cds.event.handler.Constants.PROFILE_ID_CLAIM;
+import static org.wso2.identity.cds.event.handler.Constants.TENANT_DOMAIN;
+import static org.wso2.identity.cds.event.handler.Constants.TENANT_ID;
+import static org.wso2.identity.cds.event.handler.Constants.USER_CLAIMS_PROPERTY;
+import static org.wso2.identity.cds.event.handler.Constants.USER_ID;
+import static org.wso2.identity.cds.event.handler.Constants.USER_ID_CLAIM;
+import static org.wso2.identity.cds.event.handler.Constants.USER_ID_PROPERTY;
+import static org.wso2.identity.cds.event.handler.Constants.WSO2_CLAIMS_DIALECT;
 
 /**
  * This class handles identity events and triggers profile syncs with the Customer Data Management Service.
@@ -41,7 +53,7 @@ public class IdentityEventHandler extends AbstractEventHandler {
     @Override
     public void handleEvent(Event event) throws IdentityEventException {
 
-        if (!Utils.isCDSEnabled()){
+        if (!Utils.isCDSEnabled()) {
             return;
         }
 
@@ -80,7 +92,8 @@ public class IdentityEventHandler extends AbstractEventHandler {
             }
         }
 
-        if (POST_SET_USER_CLAIM_VALUES_WITH_ID.equals(eventName) || POST_SET_USER_CLAIM_VALUE_WITH_ID.equals(eventName)) {
+        if (POST_SET_USER_CLAIM_VALUES_WITH_ID.equals(eventName) ||
+                POST_SET_USER_CLAIM_VALUE_WITH_ID.equals(eventName)) {
             try {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> userClaims = (Map<String, Object>) properties.get(USER_CLAIMS_PROPERTY);

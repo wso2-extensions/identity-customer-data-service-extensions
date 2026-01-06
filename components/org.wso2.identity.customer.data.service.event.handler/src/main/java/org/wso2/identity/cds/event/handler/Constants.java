@@ -18,6 +18,9 @@
 
 package org.wso2.identity.cds.event.handler;
 
+/**
+ * Constants used in the CDS Event Handler.
+ */
 public class Constants {
     public static final String EVENT = "event";
     public static final String PROFILE_ID = "profileId";

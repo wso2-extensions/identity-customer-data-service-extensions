@@ -30,7 +30,7 @@ public class Utils {
     }
 
     public static String getBase64EncodedCredentials() {
-        String credentials =  IdentityUtil.getProperty("CustomerDataService.AdminUsername")+ ":" +
+        String credentials =  IdentityUtil.getProperty("CustomerDataService.AdminUsername") + ":" +
                 IdentityUtil.getProperty("CustomerDataService.AdminPassword");
         return java.util.Base64.getEncoder().encodeToString(credentials.getBytes());
     }

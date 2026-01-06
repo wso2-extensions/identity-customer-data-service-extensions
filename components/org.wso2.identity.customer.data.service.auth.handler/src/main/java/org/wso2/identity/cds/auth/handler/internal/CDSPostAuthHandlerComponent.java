@@ -27,6 +27,9 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.identity.cds.auth.handler.CDSPostAuthnHandler;
 
+/**
+ * OSGi component for CDS Post Authentication Handler.
+ */
 @Component(name = "org.wso2.identity.cds.auth.handler",
         immediate = true)
 public class CDSPostAuthHandlerComponent {
@@ -34,18 +37,18 @@ public class CDSPostAuthHandlerComponent {
 private static final Log log = LogFactory.getLog(CDSPostAuthHandlerComponent.class);
 
     @Activate
-    protected void activate(ComponentContext ctx){
+    protected void activate(ComponentContext ctx) {
 
         CDSPostAuthnHandler cdsPostAuthnHandler  = new CDSPostAuthnHandler();
-        ctx.getBundleContext().registerService(PostAuthenticationHandler.class.getName(), cdsPostAuthnHandler, null);
+        ctx.getBundleContext().registerService(PostAuthenticationHandler.class.getName(), cdsPostAuthnHandler,
+                null);
         log.info("CDS Post Authentication handler activated successfully.");
     }
 
     @Deactivate
-    protected void deactivate(ComponentContext ctx){
-        if(log.isDebugEnabled()){
+    protected void deactivate(ComponentContext ctx) {
+        if (log.isDebugEnabled()) {
             log.debug("CDS Post Authentication handler is deactivated");
         }
     }
 }
-

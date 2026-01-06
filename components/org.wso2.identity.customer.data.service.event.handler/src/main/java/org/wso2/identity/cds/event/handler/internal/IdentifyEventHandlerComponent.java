@@ -3,11 +3,12 @@ package org.wso2.identity.cds.event.handler.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
-import org.osgi.service.component.annotations.*;
-import org.wso2.carbon.user.core.service.RealmService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.identity.cds.event.handler.ClaimEventHandler;
 import org.wso2.identity.cds.event.handler.IdentityEventHandler;
-import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 
 /**
  * OSGi component that registers the CDS IdentifyEventHandler.

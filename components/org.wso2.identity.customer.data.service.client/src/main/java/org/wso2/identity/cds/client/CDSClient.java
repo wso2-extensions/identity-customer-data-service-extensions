@@ -117,7 +117,7 @@ public class CDSClient {
         }
     }
 
-    public static void triggerProfileSchemasync( Map<String, Object> payload, String tenant) {
+    public static void triggerProfileSchemasync(Map<String, Object> payload, String tenant) {
 
         try {
             ObjectMapper mapper = new ObjectMapper();

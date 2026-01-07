@@ -18,6 +18,7 @@
 
 package org.wso2.identity.cds.event.handler;
 
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
@@ -48,7 +49,7 @@ import static org.wso2.identity.cds.event.handler.Constants.WSO2_CLAIMS_DIALECT;
  */
 public class IdentityEventHandler extends AbstractEventHandler {
 
-    private static final org.apache.commons.logging.Log LOG = LogFactory.getLog(IdentityEventHandler.class);
+    private static final Log LOG = LogFactory.getLog(IdentityEventHandler.class);
 
     @Override
     public void handleEvent(Event event) throws IdentityEventException {

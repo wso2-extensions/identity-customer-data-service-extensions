@@ -34,7 +34,7 @@ import org.wso2.identity.cds.auth.handler.CDSPostAuthnHandler;
         immediate = true)
 public class CDSPostAuthHandlerComponent {
 
-private static final Log log = LogFactory.getLog(CDSPostAuthHandlerComponent.class);
+    private static final Log log = LogFactory.getLog(CDSPostAuthHandlerComponent.class);
 
     @Activate
     protected void activate(ComponentContext ctx) {

@@ -74,9 +74,9 @@ public class CDSClient {
                 }
             }
         } catch (IOException e) {
-            log.error("I/O error occurred while triggering identity data sync for tenant: " + tenant, e);
+            log.warn("I/O error occurred while triggering identity data sync for tenant: " + tenant, e);
         } catch (Exception e) {
-            log.error("Unexpected error occurred while triggering identity data sync for tenant: " + tenant, e);
+            log.warn("Unexpected error occurred while triggering identity data sync for tenant: " + tenant, e);
         }
     }
 
@@ -109,11 +109,11 @@ public class CDSClient {
                 }
             }
         } catch (IOException e) {
-            log.error("I/O error occurred while triggering profile sync for tenant: " + tenant, e);
+            log.warn("I/O error occurred while triggering profile sync for tenant: " + tenant, e);
         } catch (RuntimeException e) {
-            log.error("Profile sync failed for tenant: " + tenant + " due to business logic error.", e);
+            log.warn("Profile sync failed for tenant: " + tenant + " due to business logic error.", e);
         } catch (Exception e) {
-            log.error("Unexpected error occurred while triggering profile sync for tenant: " + tenant, e);
+            log.warn("Unexpected error occurred while triggering profile sync for tenant: " + tenant, e);
         }
     }
 
@@ -145,11 +145,11 @@ public class CDSClient {
                 }
             }
         } catch (IOException e) {
-            log.error("I/O error occurred while triggering profile schema sync for tenant: " + tenant, e);
+            log.warn("I/O error occurred while triggering profile schema sync for tenant: " + tenant, e);
         } catch (RuntimeException e) {
-            log.error("Profile schema sync failed for tenant: " + tenant, e);
+            log.warn("Profile schema sync failed for tenant: " + tenant, e);
         } catch (Exception e) {
-            log.error("Unexpected error occurred while triggering profile schema sync for tenant: " + tenant, e);
+            log.warn("Unexpected error occurred while triggering profile schema sync for tenant: " + tenant, e);
         }
     }
 

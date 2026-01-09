@@ -58,17 +58,10 @@ public class AuthEventListener extends AbstractEventHandler {
         if (AUTHENTICATION_SUCCESS.equals(event.getEventName())) {
             AuthenticationContext context = (AuthenticationContext) event.getEventProperties().get("context");
             if (context != null) {
-                String cookieValue = (String) context.getProperty(PROFILE_ID);
-                LOG.debug("Cookie captured during login: " + cookieValue);
-                if (cookieValue == null || cookieValue.isEmpty()) {
-                    LOG.debug("No profileId cookie found in the authentication context.");
-                    return;
-                }
                 try {
                     String userId;
                     userId = context.getSequenceConfig().getAuthenticatedUser().getUserId();
                     Map<String, Object> profileSyncPayload = new HashMap<>();
-                    profileSyncPayload.put(PROFILE_ID, cookieValue);
                     profileSyncPayload.put(USER_ID, userId);
                     profileSyncPayload.put(TENANT_ID, context.getProperty(USER_TENANT_DOMAIN));
                     String tenant = context.getTenantDomain();
@@ -83,16 +76,10 @@ public class AuthEventListener extends AbstractEventHandler {
             AuthenticationContext context = (AuthenticationContext) event.getEventProperties().get("context");
             if (context != null) {
                 String tenant = context.getTenantDomain();
-                String cookieValue = (String) context.getProperty(PROFILE_ID);
-                if (cookieValue == null || cookieValue.isEmpty()) {
-                    LOG.warn("No profileId cookie found in the authentication context.");
-                    return;
-                }
                 try {
                     String userId;
                     userId = context.getSequenceConfig().getAuthenticatedUser().getUserId();
                     Map<String, Object> profileSyncPayload = new HashMap<>();
-                    profileSyncPayload.put(PROFILE_ID, cookieValue);
                     profileSyncPayload.put(USER_ID, userId);
                     profileSyncPayload.put(TENANT_ID, properties.get(TENANT_DOMAIN));
                     CDSClient.triggerIdentityDataSync(event.getEventName(), profileSyncPayload, tenant);
@@ -106,16 +93,10 @@ public class AuthEventListener extends AbstractEventHandler {
             AuthenticationContext context = (AuthenticationContext) event.getEventProperties().get("context");
             if (context != null) {
                 String tenant = context.getTenantDomain();
-                String cookieValue = (String) context.getProperty(PROFILE_ID);
-                if (cookieValue == null || cookieValue.isEmpty()) {
-                    LOG.warn("No profileId cookie found in the authentication context.");
-                    return;
-                }
                 try {
                     String userId;
                     userId = context.getSequenceConfig().getAuthenticatedUser().getUserId();
                     Map<String, Object> profileSyncPayload = new HashMap<>();
-                    profileSyncPayload.put(PROFILE_ID, cookieValue);
                     profileSyncPayload.put(USER_ID, userId);
                     profileSyncPayload.put(TENANT_ID, properties.get(TENANT_DOMAIN));
                     CDSClient.triggerIdentityDataSync(event.getEventName(), profileSyncPayload, tenant);

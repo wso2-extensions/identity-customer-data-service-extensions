@@ -74,6 +74,7 @@ public class IdentityEventHandler extends AbstractEventHandler {
                                 m.put(e.getKey(), e.getValue()), HashMap::putAll);
 
 
+
                 String profileId = (String) filteredUserClaims.get(PROFILE_ID_CLAIM);
                 String userId = (String) filteredUserClaims.get(USER_ID_CLAIM);
                 Map<String, Object> profileSyncPayload = new HashMap<>();

@@ -31,7 +31,7 @@ public class Constants {
     public static final String USER_CLAIMS_PROPERTY = "USER_CLAIMS";
     public static final String CLAIMS = "claims";
     public static final String WSO2_CLAIMS_DIALECT = "http://wso2.org/claims/";
-    public static final String PROFILE_ID_CLAIM = "http://wso2.org/claims/profileId";
+    public static final String PROFILE_ID_CLAIM = "http://wso2.org/claims/identity/profileId";
     public static final String USER_ID_CLAIM = "http://wso2.org/claims/userid";
 
 

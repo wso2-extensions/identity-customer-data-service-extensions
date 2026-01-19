@@ -123,7 +123,8 @@ public class CDSClient {
                 // Success: keep logs minimal. Put details in debug only.
                 if (statusCode == 200 || statusCode == 204) {
                     if (log.isDebugEnabled()) {
-                        log.debug("CDS " + operation + " success. status=" + statusCode + ", tenant=" + sanitizedTenant);
+                        log.debug("CDS " + operation + " success. status=" + statusCode + ", tenant=" +
+                                sanitizedTenant);
                     }
                     return;
                 }

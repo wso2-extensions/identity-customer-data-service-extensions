@@ -18,6 +18,7 @@
 
 package org.wso2.identity.cds.client;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 /**
@@ -38,5 +39,28 @@ public class Utils {
     public static boolean isCDSEnabled() {
         String cdsEnabled = IdentityUtil.getProperty("CustomerDataService.Enable");
         return Boolean.parseBoolean(cdsEnabled);
+    }
+
+    /**
+     * Prevent CRLF/log forging by escaping CR/LF.
+     */
+    public static String sanitizeForLog(String input) {
+        if (StringUtils.isBlank(input)) {
+            return "null";
+        }
+        return input.replace("\r", "\\r").replace("\n", "\\n");
+    }
+
+    /**
+     * Clip long strings to keep logs safe and readable.
+     */
+    public static String clip(String input, int maxChars) {
+        if (input == null) {
+            return null;
+        }
+        if (maxChars <= 0 || input.length() <= maxChars) {
+            return input;
+        }
+        return input.substring(0, maxChars) + "...(clipped)";
     }
 }

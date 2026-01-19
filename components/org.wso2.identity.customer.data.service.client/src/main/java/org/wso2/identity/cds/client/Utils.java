@@ -39,4 +39,27 @@ public class Utils {
         String cdsEnabled = IdentityUtil.getProperty("CustomerDataService.Enable");
         return Boolean.parseBoolean(cdsEnabled);
     }
+
+    /**
+     * Prevent CRLF/log forging by escaping CR/LF.
+     */
+    public static String sanitizeForLog(String input) {
+        if (input == null) {
+            return "null";
+        }
+        return input.replace("\r", "\\r").replace("\n", "\\n");
+    }
+
+    /**
+     * Clip long strings to keep logs safe and readable.
+     */
+    public static String clip(String input, int maxChars) {
+        if (input == null) {
+            return null;
+        }
+        if (maxChars <= 0 || input.length() <= maxChars) {
+            return input;
+        }
+        return input.substring(0, maxChars) + "...(clipped)";
+    }
 }

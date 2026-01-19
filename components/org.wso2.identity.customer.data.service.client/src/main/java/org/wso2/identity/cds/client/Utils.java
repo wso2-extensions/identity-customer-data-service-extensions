@@ -18,6 +18,7 @@
 
 package org.wso2.identity.cds.client;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 /**
@@ -44,7 +45,7 @@ public class Utils {
      * Prevent CRLF/log forging by escaping CR/LF.
      */
     public static String sanitizeForLog(String input) {
-        if (input == null) {
+        if (StringUtils.isBlank(input)) {
             return "null";
         }
         return input.replace("\r", "\\r").replace("\n", "\\n");

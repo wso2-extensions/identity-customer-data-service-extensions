@@ -160,7 +160,7 @@
                     <artifactId>spotbugs-maven-plugin</artifactId>
                     <version>${spotbugs-maven-plugin.version}</version>
                     <configuration>
-                        <excludeFilterFile>${maven.multiModuleProjectDirectory}/spotbugs-exclude.xml</excludeFilterFile>
+                        <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
                         <effort>Max</effort>
                         <threshold>Low</threshold>
                         <xmlOutput>true</xmlOutput>

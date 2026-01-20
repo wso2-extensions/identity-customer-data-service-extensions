@@ -67,8 +67,7 @@ public class Utils {
         // Comprehensive CRLF replacement
         return clean.replace("\r", "_")
                 .replace("\n", "_")
-                .replace("%0a", "_")
-                .replace("%0d", "_");
+                .replaceAll("(?i)%0a", "_")
+                .replaceAll("(?i)%0d", "_");
     }
-
 }

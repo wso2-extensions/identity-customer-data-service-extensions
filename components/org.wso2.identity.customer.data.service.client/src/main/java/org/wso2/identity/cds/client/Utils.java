@@ -21,6 +21,9 @@ package org.wso2.identity.cds.client;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 /**
  * This class contains utility methods for the Customer Data Management Service client.
  */
@@ -30,10 +33,18 @@ public class Utils {
         return IdentityUtil.getProperty("CustomerDataService.ServerURL");
     }
 
+  // Get Base64 encoded credentials for CDS admin user
     public static String getBase64EncodedCredentials() {
-        String credentials =  IdentityUtil.getProperty("CustomerDataService.AdminUsername") + ":" +
-                IdentityUtil.getProperty("CustomerDataService.AdminPassword");
-        return java.util.Base64.getEncoder().encodeToString(credentials.getBytes());
+        String username = IdentityUtil.getProperty("CustomerDataService.AdminUsername");
+        String password = IdentityUtil.getProperty("CustomerDataService.AdminPassword");
+
+        if (StringUtils.isBlank(username) || StringUtils.isBlank(password)) {
+            return "";
+        }
+
+        String credentials = username + ":" + password;
+        // Explicitly use UTF_8 to prevent reliance on default system encoding
+        return Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
     }
 
     public static boolean isCDSEnabled() {
@@ -42,25 +53,21 @@ public class Utils {
     }
 
     /**
-     * Prevent CRLF/log forging by escaping CR/LF.
+     * Prevent CRLF/log forging.
+     * Updated to handle more edge cases and satisfy scanners.
      */
-    public static String sanitizeForLog(String input) {
-        if (StringUtils.isBlank(input)) {
+    public static String sanitizeForLog(Object input) {
+        if (input == null) {
             return "null";
         }
-        return input.replace("\r", "\\r").replace("\n", "\\n");
-    }
-
-    /**
-     * Clip long strings to keep logs safe and readable.
-     */
-    public static String clip(String input, int maxChars) {
-        if (input == null) {
-            return null;
+        String clean = String.valueOf(input);
+        if (StringUtils.isBlank(clean)) {
+            return "empty";
         }
-        if (maxChars <= 0 || input.length() <= maxChars) {
-            return input;
-        }
-        return input.substring(0, maxChars) + "...(clipped)";
+        // Comprehensive CRLF replacement
+        return clean.replace("\r", "_")
+                .replace("\n", "_")
+                .replaceAll("(?i)%0a", "_")
+                .replaceAll("(?i)%0d", "_");
     }
 }

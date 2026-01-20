@@ -65,6 +65,7 @@ public class IdentityEventHandler extends AbstractEventHandler {
                 Map<String, Object> userClaims = (Map<String, Object>) properties.get(USER_CLAIMS_PROPERTY);
                 if (userClaims == null || userClaims.isEmpty()) {
                     LOG.info("No USER_CLAIMS found in event properties.");
+                    return;
                 }
 
                 // Filter userClaims to only include keys that start with "http://wso2.org/claims/"
@@ -73,7 +74,10 @@ public class IdentityEventHandler extends AbstractEventHandler {
                         .collect(HashMap::new, (m, e) ->
                                 m.put(e.getKey(), e.getValue()), HashMap::putAll);
 
-
+                if (filteredUserClaims.isEmpty()) {
+                    LOG.info("No WSO2 claims found in USER_CLAIMS.");
+                    return;
+                }
 
                 String profileId = (String) filteredUserClaims.get(PROFILE_ID_CLAIM);
                 String userId = (String) filteredUserClaims.get(USER_ID_CLAIM);

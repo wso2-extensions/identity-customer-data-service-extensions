@@ -44,6 +44,15 @@ public class ClaimEventHandler extends AbstractEventHandler {
     @Reference
     private RealmService realmService;
 
+    private static String safeLogValue(String s) {
+        if (s == null) {
+            return "null";
+        }
+        return s.replace('\r', '_').replace('\n', '_').
+                replace('\t', '_');
+    }
+
+
     @Override
     public void handleEvent(Event event) throws IdentityEventException {
 
@@ -53,16 +62,26 @@ public class ClaimEventHandler extends AbstractEventHandler {
         String eventName = event.getEventName();
          if ("POST_ADD_EXTERNAL_CLAIM".equals(eventName) || "POST_UPDATE_EXTERNAL_CLAIM".equals(eventName) ||
                 "POST_DELETE_EXTERNAL_CLAIM".equals(eventName) || "POST_UPDATE_LOCAL_CLAIM".equals(eventName)) {
-            int tenantId = (int) event.getEventProperties().get("tenantId");
-            String tenantDomain;
-            tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-            Map<String, Object> profileSchemaSyncPayload = new HashMap<>();
-            profileSchemaSyncPayload.put(EVENT, eventName);
-            profileSchemaSyncPayload.put(TENANT_ID, tenantDomain);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Triggering profile schema sync for event: " + eventName + " in tenant: " + tenantDomain);
-            }
-            CDSClient.triggerProfileSchemasync(profileSchemaSyncPayload, tenantDomain);
+
+             Object tenantIdObj = event.getEventProperties() != null ? event.getEventProperties().get("tenantId")
+                     : null;
+             if (!(tenantIdObj instanceof Integer)) {
+                 if (LOG.isDebugEnabled()) {
+                     LOG.debug("Skipping profile schema sync: tenantId is missing or invalid.");
+                 }
+                 return;
+             }
+             int tenantId = (Integer) tenantIdObj;
+             String tenantDomain;
+             tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+             Map<String, Object> profileSchemaSyncPayload = new HashMap<>();
+             profileSchemaSyncPayload.put(EVENT, eventName);
+             profileSchemaSyncPayload.put(TENANT_ID, tenantDomain);
+             if (LOG.isDebugEnabled()) {
+                 LOG.debug("Triggering profile schema sync for event: " + safeLogValue(eventName) +
+                        " in tenant: " + safeLogValue(tenantDomain));
+             }
+             CDSClient.triggerProfileSchemasync(profileSchemaSyncPayload, tenantDomain);
         }
     }
 

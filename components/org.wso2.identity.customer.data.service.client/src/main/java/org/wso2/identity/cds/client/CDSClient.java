@@ -18,6 +18,7 @@
 
 package org.wso2.identity.cds.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
@@ -48,18 +49,13 @@ public class CDSClient {
 
     // Trigger identity data sync in CDS
     public static void triggerIdentityDataSync(String event, Map<String, Object> payload, String tenant) {
-
         payload.put(EVENT, event);
-
         try {
             String json = MAPPER.writeValueAsString(payload);
             String url = buildProfileSyncAPI(tenant);
             doPost(url, json, tenant, "identity-data-sync");
         } catch (IOException e) {
             log.warn("I/O error while triggering CDS identity data sync. tenant="
-                    + Utils.sanitizeForLog(tenant), e);
-        } catch (RuntimeException e) {
-            log.warn("Runtime error while triggering CDS identity data sync. tenant="
                     + Utils.sanitizeForLog(tenant), e);
         }
     }
@@ -71,48 +67,35 @@ public class CDSClient {
         try {
             String json = MAPPER.writeValueAsString(payload);
             String url = buildProfileSyncAPI(tenant);
-
             doPost(url, json, tenant, "profile-sync");
-
         } catch (IOException e) {
             log.warn("I/O error while triggering CDS profile sync. tenant="
-                    + Utils.sanitizeForLog(tenant), e);
-        } catch (RuntimeException e) {
-            log.warn("Runtime error while triggering CDS profile sync. tenant="
                     + Utils.sanitizeForLog(tenant), e);
         }
     }
 
     public static void triggerProfileSchemasync(Map<String, Object> payload, String tenant) {
-
         try {
             String json = MAPPER.writeValueAsString(payload);
             String url = buildProfileSchemaSyncAPI(tenant);
-
             doPost(url, json, tenant, "profile-schema-sync");
-
         } catch (IOException e) {
             log.warn("I/O error while triggering CDS profile schema sync. tenant="
-                    + Utils.sanitizeForLog(tenant), e);
-        } catch (RuntimeException e) {
-            log.warn("Runtime error while triggering CDS profile schema sync. tenant="
                     + Utils.sanitizeForLog(tenant), e);
         }
     }
 
+    // Execute HTTP POST request to CDS
     private static void doPost(String url, String jsonBody, String tenant, String operation) throws IOException {
 
         String sanitizedTenant = Utils.sanitizeForLog(tenant);
-
         try (CloseableHttpClient client = HttpClients.createDefault()) {
-
             HttpPost httpPost = new HttpPost(url);
             httpPost.setEntity(new StringEntity(jsonBody, StandardCharsets.UTF_8));
             httpPost.setHeader(CONTENT_TYPE, APPLICATION_JSON);
             httpPost.setHeader(AUTHORIZATION, "Basic " + Utils.getBase64EncodedCredentials());
 
             try (CloseableHttpResponse response = client.execute(httpPost)) {
-
                 int statusCode = response.getStatusLine().getStatusCode();
                 String responseBody = "";
 
@@ -120,10 +103,9 @@ public class CDSClient {
                     responseBody = new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
                 }
 
-                // Success: keep logs minimal. Put details in debug only.
                 if (statusCode == 200 || statusCode == 204) {
                     if (log.isDebugEnabled()) {
-                        log.debug("CDS " + operation + " success. status=" + statusCode + ", tenant=" +
+                        log.debug("CDS " + Utils.sanitizeForLog(operation) + " succeeded for tenant: " +
                                 sanitizedTenant);
                     }
                     return;
@@ -131,52 +113,38 @@ public class CDSClient {
 
                 CdsError cdsError = parseCdsError(responseBody);
 
-                String safeCode = Utils.sanitizeForLog(cdsError.code);
-                String safeMsg = Utils.sanitizeForLog(cdsError.message);
-                String safeDesc = Utils.sanitizeForLog(cdsError.description);
-
-                log.warn("CDS " + operation + " failed. status=" + statusCode
-                        + ", tenant=" + sanitizedTenant
-                        + ", code=" + safeCode
-                        + ", message=" + safeMsg
-                        + ", description=" + safeDesc);
-
-                if (log.isDebugEnabled()) {
-                    log.debug("CDS " + operation + " raw response body (sanitized, clipped). tenant=" + sanitizedTenant
-                            + ", body=" + Utils.sanitizeForLog(Utils.clip(responseBody, 2048)));
-                }
+                log.warn(String.format("CDS %s failed for tenant=%s with status=%d, code=%s, message=%s, " +
+                                "description=%s",
+                        Utils.sanitizeForLog(operation),
+                        sanitizedTenant,
+                        statusCode,
+                        Utils.sanitizeForLog(cdsError.code),
+                        Utils.sanitizeForLog(cdsError.message),
+                        Utils.sanitizeForLog(cdsError.description)));
             }
         }
     }
 
     private static CdsError parseCdsError(String responseBody) {
-
         if (responseBody == null || responseBody.isBlank()) {
             return new CdsError("n/a", "n/a", "n/a");
         }
 
         try {
             JsonNode node = MAPPER.readTree(responseBody);
-            String code = getTextOrNull(node, "code");
-            String message = getTextOrNull(node, "message");
-            String description = getTextOrNull(node, "description");
             return new CdsError(
-                    code != null ? code : "n/a",
-                    message != null ? message : "n/a",
-                    description != null ? description : "n/a"
+                    getTextOrDefault(node, "code", "n/a"),
+                    getTextOrDefault(node, "message", "n/a"),
+                    getTextOrDefault(node, "description", "n/a")
             );
-
-        } catch (Exception ignore) {
-            return new CdsError("n/a", "Unexpected response", "Unable to parse error response");
+        } catch (JsonProcessingException e) {
+            return new CdsError("parse_error", "Unexpected response format", "Unable to parse error response");
         }
     }
 
-    private static String getTextOrNull(JsonNode node, String field) {
+    private static String getTextOrDefault(JsonNode node, String field, String defaultValue) {
         JsonNode v = node.get(field);
-        if (v == null || v.isNull()) {
-            return null;
-        }
-        return v.asText();
+        return (v == null || v.isNull()) ? defaultValue : v.asText();
     }
 
     // Build the Profile Sync API URL
@@ -184,6 +152,7 @@ public class CDSClient {
         return String.format(PROFILE_SYNC_API, Utils.getCDSServiceURL(), tenant);
     }
 
+    // Build the Profile Schema Sync API URL
     private static String buildProfileSchemaSyncAPI(String tenant) {
         return String.format(PROFILE_SCHEMA_SYNC_API, Utils.getCDSServiceURL(), tenant);
     }

@@ -56,7 +56,11 @@ public class AuthEventListener extends AbstractEventHandler {
         }
 
         if (AUTHENTICATION_SUCCESS.equals(event.getEventName())) {
-            AuthenticationContext context = (AuthenticationContext) event.getEventProperties().get("context");
+            Map<String, Object> eventProperties = event.getEventProperties();
+            if (eventProperties == null) {
+                return;
+            }
+            AuthenticationContext context = (AuthenticationContext) eventProperties.get("context");
             if (context != null) {
                 try {
                     String userId;
@@ -73,7 +77,11 @@ public class AuthEventListener extends AbstractEventHandler {
         }
 
         if (POST_AUTHENTICATION.equals(event.getEventName())) {
-            AuthenticationContext context = (AuthenticationContext) event.getEventProperties().get("context");
+            Map<String, Object> eventProperties = event.getEventProperties();
+            if (eventProperties == null) {
+                return;
+            }
+            AuthenticationContext context = (AuthenticationContext) eventProperties.get("context");
             if (context != null) {
                 String tenant = context.getTenantDomain();
                 try {
@@ -90,7 +98,11 @@ public class AuthEventListener extends AbstractEventHandler {
         }
 
         if (SESSION_TERMINATE.equals(event.getEventName())) {
-            AuthenticationContext context = (AuthenticationContext) event.getEventProperties().get("context");
+            Map<String, Object> eventProperties = event.getEventProperties();
+            if (eventProperties == null) {
+                return;
+            }
+            AuthenticationContext context = (AuthenticationContext) eventProperties.get("context");
             if (context != null) {
                 String tenant = context.getTenantDomain();
                 try {

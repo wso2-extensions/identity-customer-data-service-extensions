@@ -34,8 +34,8 @@ import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_D
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_SET_USER_CLAIM_VALUES_WITH_ID;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_SET_USER_CLAIM_VALUE_WITH_ID;
 import static org.wso2.identity.cds.event.handler.Constants.CLAIMS;
-import static org.wso2.identity.cds.event.handler.Constants.PROFILE_ID;
-import static org.wso2.identity.cds.event.handler.Constants.PROFILE_ID_CLAIM;
+import static org.wso2.identity.cds.event.handler.Constants.PROFILE_COOKIE;
+import static org.wso2.identity.cds.event.handler.Constants.PROFILE_COOKIE_CLAIM;
 import static org.wso2.identity.cds.event.handler.Constants.TENANT_DOMAIN;
 import static org.wso2.identity.cds.event.handler.Constants.TENANT_ID;
 import static org.wso2.identity.cds.event.handler.Constants.USER_CLAIMS_PROPERTY;
@@ -79,15 +79,15 @@ public class IdentityEventHandler extends AbstractEventHandler {
                     return;
                 }
 
-                String profileId = (String) filteredUserClaims.get(PROFILE_ID_CLAIM);
+                String profileCookie = (String) filteredUserClaims.get(PROFILE_COOKIE_CLAIM);
                 String userId = (String) filteredUserClaims.get(USER_ID_CLAIM);
                 Map<String, Object> profileSyncPayload = new HashMap<>();
-                profileSyncPayload.put(PROFILE_ID, profileId);
+                profileSyncPayload.put(PROFILE_COOKIE, profileCookie);
                 profileSyncPayload.put(USER_ID, userId);
                 profileSyncPayload.put(CLAIMS, new HashMap<>(filteredUserClaims));
                 profileSyncPayload.put(TENANT_ID, properties.get(TENANT_DOMAIN));
                 String tenant = (String) properties.get(TENANT_DOMAIN);
-                if (profileId == null || profileId.isEmpty()) {
+                if (profileCookie == null || profileCookie.isEmpty()) {
                     CDSClient.triggerProfileSync(POST_ADD_USER, profileSyncPayload, tenant);
                     return;
                 } else {

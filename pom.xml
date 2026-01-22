@@ -241,7 +241,7 @@
     </build>
 
     <properties>
-        <project.scm.id>cds-extensions</project.scm.id>
+        <project.scm.id>my-scm-server</project.scm.id>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -55,48 +55,6 @@ public class AuthEventListener extends AbstractEventHandler {
             return;
         }
 
-        if (AUTHENTICATION_SUCCESS.equals(event.getEventName())) {
-            Map<String, Object> eventProperties = event.getEventProperties();
-            if (eventProperties == null) {
-                return;
-            }
-            AuthenticationContext context = (AuthenticationContext) eventProperties.get("context");
-            if (context != null) {
-                try {
-                    String userId;
-                    userId = context.getSequenceConfig().getAuthenticatedUser().getUserId();
-                    Map<String, Object> profileSyncPayload = new HashMap<>();
-                    profileSyncPayload.put(USER_ID, userId);
-                    profileSyncPayload.put(TENANT_ID, context.getProperty(USER_TENANT_DOMAIN));
-                    String tenant = context.getTenantDomain();
-                    CDSClient.triggerIdentityDataSync(event.getEventName(), profileSyncPayload, tenant);
-                } catch (UserIdNotFoundException e) {
-                    LOG.warn("User ID not found in authentication context.", e);
-                }
-            }
-        }
-
-        if (POST_AUTHENTICATION.equals(event.getEventName())) {
-            Map<String, Object> eventProperties = event.getEventProperties();
-            if (eventProperties == null) {
-                return;
-            }
-            AuthenticationContext context = (AuthenticationContext) eventProperties.get("context");
-            if (context != null) {
-                String tenant = context.getTenantDomain();
-                try {
-                    String userId;
-                    userId = context.getSequenceConfig().getAuthenticatedUser().getUserId();
-                    Map<String, Object> profileSyncPayload = new HashMap<>();
-                    profileSyncPayload.put(USER_ID, userId);
-                    profileSyncPayload.put(TENANT_ID, properties.get(TENANT_DOMAIN));
-                    CDSClient.triggerIdentityDataSync(event.getEventName(), profileSyncPayload, tenant);
-                } catch (UserIdNotFoundException e) {
-                    LOG.warn("User ID not found in authentication context.", e);
-                }
-            }
-        }
-
         if (SESSION_TERMINATE.equals(event.getEventName())) {
             Map<String, Object> eventProperties = event.getEventProperties();
             if (eventProperties == null) {
@@ -117,7 +75,6 @@ public class AuthEventListener extends AbstractEventHandler {
                 }
             }
         }
-
     }
 
     @Override

@@ -31,8 +31,6 @@ import org.wso2.identity.cds.client.Utils;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.AUTHENTICATION_SUCCESS;
-import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_AUTHENTICATION;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.SESSION_TERMINATE;
 
 /**

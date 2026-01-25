@@ -55,6 +55,10 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.securevault</groupId>
+            <artifactId>org.wso2.securevault</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -75,6 +79,7 @@
                             org.apache.commons.logging,
                             com.google.gson;version="${gson.osgi.version.range}",
                             com.fasterxml.jackson.databind;version="${jackson.databind.osgi.version.range}",
+                            org.wso2.securevault.*; version="${org.wso2.securevault.import.version.range}",
                             *
                         </Import-Package>
                     </instructions>

@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.wso2.identity.cds.event.handler.Constants.EVENT;
-import static org.wso2.identity.cds.event.handler.Constants.TENANT_ID;
+import static org.wso2.identity.cds.event.handler.Constants.ORG_HANDLE;
 
 /**
  * This class handles identity events and triggers profile syncs with the Customer Data Management Service.
@@ -76,7 +76,7 @@ public class ClaimEventHandler extends AbstractEventHandler {
              tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
              Map<String, Object> profileSchemaSyncPayload = new HashMap<>();
              profileSchemaSyncPayload.put(EVENT, eventName);
-             profileSchemaSyncPayload.put(TENANT_ID, tenantDomain);
+             profileSchemaSyncPayload.put(ORG_HANDLE, tenantDomain);
              if (LOG.isDebugEnabled()) {
                  LOG.debug("Triggering profile schema sync for event: " + safeLogValue(eventName) +
                         " in tenant: " + safeLogValue(tenantDomain));

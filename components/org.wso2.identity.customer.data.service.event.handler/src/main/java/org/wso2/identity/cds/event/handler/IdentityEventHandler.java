@@ -34,10 +34,10 @@ import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_D
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_SET_USER_CLAIM_VALUES_WITH_ID;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_SET_USER_CLAIM_VALUE_WITH_ID;
 import static org.wso2.identity.cds.event.handler.Constants.CLAIMS;
+import static org.wso2.identity.cds.event.handler.Constants.ORG_HANDLE;
 import static org.wso2.identity.cds.event.handler.Constants.PROFILE_COOKIE;
 import static org.wso2.identity.cds.event.handler.Constants.PROFILE_COOKIE_CLAIM;
 import static org.wso2.identity.cds.event.handler.Constants.TENANT_DOMAIN;
-import static org.wso2.identity.cds.event.handler.Constants.ORG_HANDLE;
 import static org.wso2.identity.cds.event.handler.Constants.USER_CLAIMS_PROPERTY;
 import static org.wso2.identity.cds.event.handler.Constants.USER_ID;
 import static org.wso2.identity.cds.event.handler.Constants.USER_ID_CLAIM;

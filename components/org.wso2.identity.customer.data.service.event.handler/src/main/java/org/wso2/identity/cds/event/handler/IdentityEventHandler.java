@@ -37,7 +37,7 @@ import static org.wso2.identity.cds.event.handler.Constants.CLAIMS;
 import static org.wso2.identity.cds.event.handler.Constants.PROFILE_COOKIE;
 import static org.wso2.identity.cds.event.handler.Constants.PROFILE_COOKIE_CLAIM;
 import static org.wso2.identity.cds.event.handler.Constants.TENANT_DOMAIN;
-import static org.wso2.identity.cds.event.handler.Constants.TENANT_ID;
+import static org.wso2.identity.cds.event.handler.Constants.ORG_HANDLE;
 import static org.wso2.identity.cds.event.handler.Constants.USER_CLAIMS_PROPERTY;
 import static org.wso2.identity.cds.event.handler.Constants.USER_ID;
 import static org.wso2.identity.cds.event.handler.Constants.USER_ID_CLAIM;
@@ -85,7 +85,7 @@ public class IdentityEventHandler extends AbstractEventHandler {
                 profileSyncPayload.put(PROFILE_COOKIE, profileCookie);
                 profileSyncPayload.put(USER_ID, userId);
                 profileSyncPayload.put(CLAIMS, new HashMap<>(filteredUserClaims));
-                profileSyncPayload.put(TENANT_ID, properties.get(TENANT_DOMAIN));
+                profileSyncPayload.put(ORG_HANDLE, properties.get(TENANT_DOMAIN));
                 String tenant = (String) properties.get(TENANT_DOMAIN);
                 if (profileCookie == null || profileCookie.isEmpty()) {
                     CDSClient.triggerProfileSync(POST_ADD_USER, profileSyncPayload, tenant);
@@ -118,7 +118,7 @@ public class IdentityEventHandler extends AbstractEventHandler {
                     Map<String, Object> profileSyncPayload = new HashMap<>();
                     profileSyncPayload.put(USER_ID, userId);
                     profileSyncPayload.put(CLAIMS, new HashMap<>(filteredUserClaims));
-                    profileSyncPayload.put(TENANT_ID, properties.get(TENANT_DOMAIN));
+                    profileSyncPayload.put(ORG_HANDLE, properties.get(TENANT_DOMAIN));
                     String tenant = (String) properties.get(TENANT_DOMAIN);
                     CDSClient.triggerIdentityDataSync(eventName, profileSyncPayload, tenant);
                 }
@@ -133,7 +133,7 @@ public class IdentityEventHandler extends AbstractEventHandler {
             String userId = properties.get(USER_ID_PROPERTY).toString();
             Map<String, Object> profileSyncPayload = new HashMap<>();
             profileSyncPayload.put(USER_ID, userId);
-            profileSyncPayload.put(TENANT_ID, properties.get(TENANT_DOMAIN));
+            profileSyncPayload.put(ORG_HANDLE, properties.get(TENANT_DOMAIN));
             String tenant = (String) properties.get(TENANT_DOMAIN);
             CDSClient.triggerIdentityDataSync(eventName, profileSyncPayload, tenant);
             } catch (Exception e) {

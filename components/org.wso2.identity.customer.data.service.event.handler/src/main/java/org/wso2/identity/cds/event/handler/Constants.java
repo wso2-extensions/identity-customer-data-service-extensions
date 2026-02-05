@@ -26,7 +26,7 @@ public class Constants {
     public static final String PROFILE_COOKIE = "profileCookie";
     public static final String USER_ID = "userId";
     public static final String USER_ID_PROPERTY = "USER_ID";
-    public static final String TENANT_ID = "tenantId";
+    public static final String ORG_HANDLE = "orgHandle";
     public static final String TENANT_DOMAIN = "tenant-domain";
     public static final String USER_CLAIMS_PROPERTY = "USER_CLAIMS";
     public static final String CLAIMS = "claims";

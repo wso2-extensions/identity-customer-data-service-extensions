@@ -18,6 +18,7 @@
 
 package org.wso2.identity.cds.auth.listener;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -31,6 +32,7 @@ import org.wso2.identity.cds.client.Utils;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.AUTHENTICATION_SUCCESS;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.SESSION_TERMINATE;
 
 /**
@@ -40,17 +42,45 @@ import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.SESSIO
 public class AuthEventListener extends AbstractEventHandler {
 
     private static final Log LOG = LogFactory.getLog(AuthEventListener.class);
-    public static final String PROFILE_ID = "profileId";
     public static final String USER_ID = "userId";
-    public static final String TENANT_ID = "tenantId";
+    public static final String ORG_HANDLE = "orgHandle";
     public static final String TENANT_DOMAIN = "tenant-domain";
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
-
+    public static final String PROFILE_COOKIE = "profileCookie";
+    private static final String CDS_PROFILE_COOKIE = "cds_profile";
     @Override
     public void handleEvent(Event event) throws IdentityEventException {
 
         if (!Utils.isCDSEnabled()) {
             return;
+        }
+
+        if (AUTHENTICATION_SUCCESS.equals(event.getEventName())) {
+            AuthenticationContext context = (AuthenticationContext) event.getEventProperties().get("context");
+            if (context != null) {
+                String cookieValue = (String) context.getProperty(CDS_PROFILE_COOKIE);
+                LOG.debug("Cookie captured during login: " + cookieValue);
+                if (cookieValue == null || cookieValue.isEmpty()) {
+                    LOG.debug("No profileId cookie found in the authentication context.");
+                    return;
+                }
+                try {
+                    String userId;
+                    userId = context.getSequenceConfig().getAuthenticatedUser().getUserId();
+                    if (StringUtils.isBlank(userId)) {
+                        LOG.debug("User ID is blank in authentication context.");
+                        return;
+                    }
+                    Map<String, Object> profileSyncPayload = new HashMap<>();
+                    profileSyncPayload.put(PROFILE_COOKIE, cookieValue);
+                    profileSyncPayload.put(USER_ID, userId);
+                    profileSyncPayload.put(ORG_HANDLE, context.getProperty(USER_TENANT_DOMAIN));
+                    String tenant = context.getTenantDomain();
+                    CDSClient.triggerIdentityDataSync(event.getEventName(), profileSyncPayload, tenant);
+                } catch (UserIdNotFoundException e) {
+                    LOG.warn("User ID not found in authentication context.", e);
+                }
+            }
         }
 
         if (SESSION_TERMINATE.equals(event.getEventName())) {
@@ -62,17 +92,45 @@ public class AuthEventListener extends AbstractEventHandler {
             if (context != null) {
                 String tenant = context.getTenantDomain();
                 try {
-                    String userId;
-                    userId = context.getSequenceConfig().getAuthenticatedUser().getUserId();
+                    String userId = context.getSequenceConfig().getAuthenticatedUser().getUserId();
+                    // Extract cds_profile cookie from the request headers
+                    String cookieValue = null;
+                    if (context.getAuthenticationRequest() != null
+                            && context.getAuthenticationRequest().getRequestHeaders() != null) {
+                        String cookieHeader = context.getAuthenticationRequest()
+                                .getRequestHeaders().get("cookie");
+                        if (StringUtils.isNotBlank(cookieHeader)) {
+                            cookieValue = extractCookieValue(cookieHeader, CDS_PROFILE_COOKIE);
+                        }
+                    }
+                    LOG.debug("Cookie captured during logout: " + cookieValue);
+
                     Map<String, Object> profileSyncPayload = new HashMap<>();
                     profileSyncPayload.put(USER_ID, userId);
-                    profileSyncPayload.put(TENANT_ID, properties.get(TENANT_DOMAIN));
+                    profileSyncPayload.put(ORG_HANDLE, context.getProperty(USER_TENANT_DOMAIN));
+                    if (StringUtils.isNotBlank(cookieValue)) {
+                        profileSyncPayload.put(PROFILE_COOKIE, cookieValue);
+                    }
                     CDSClient.triggerIdentityDataSync(event.getEventName(), profileSyncPayload, tenant);
                 } catch (UserIdNotFoundException e) {
                     LOG.warn("User ID not found in authentication context.", e);
                 }
             }
         }
+    }
+
+    private String extractCookieValue(String cookieHeader, String cookieName) {
+        if (StringUtils.isBlank(cookieHeader)) {
+            return null;
+        }
+        String[] cookies = cookieHeader.split(";");
+        for (String cookie : cookies) {
+            String trimmed = cookie.trim();
+            if (trimmed.startsWith(cookieName + "=")) {
+                return trimmed.substring(cookieName.length() + 1);
+            }
+        }
+        return null;
     }
 
     @Override

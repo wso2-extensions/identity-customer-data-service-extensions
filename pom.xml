@@ -43,6 +43,7 @@
         <module>components/org.wso2.identity.customer.data.service.client</module>
         <module>components/org.wso2.identity.customer.data.service.event.handler</module>
         <module>components/org.wso2.identity.customer.data.service.auth.listener</module>
+        <module>components/org.wso2.identity.customer.data.service.auth.handler</module>
     </modules>
 
     <dependencyManagement>

@@ -55,13 +55,19 @@ public class AuthEventListener extends AbstractEventHandler {
             return;
         }
 
+        Map<String, Object> eventProperties = event.getEventProperties();
+        if (eventProperties == null) {
+            LOG.debug("Event properties are null for event: " + event.getEventName());
+            return;
+        }
+
         if (AUTHENTICATION_SUCCESS.equals(event.getEventName())) {
-            AuthenticationContext context = (AuthenticationContext) event.getEventProperties().get("context");
+            AuthenticationContext context = (AuthenticationContext) eventProperties.get("context");
             if (context != null) {
                 String cookieValue = (String) context.getProperty(CDS_PROFILE_COOKIE);
-                LOG.debug("Cookie captured during login: " + cookieValue);
+                LOG.debug("cds profile cookie captured during successful authentication context." );
                 if (cookieValue == null || cookieValue.isEmpty()) {
-                    LOG.debug("No profileId cookie found in the authentication context.");
+                    LOG.debug("No cds profile cookie found in the authentication context.");
                     return;
                 }
                 try {
@@ -84,10 +90,6 @@ public class AuthEventListener extends AbstractEventHandler {
         }
 
         if (SESSION_TERMINATE.equals(event.getEventName())) {
-            Map<String, Object> eventProperties = event.getEventProperties();
-            if (eventProperties == null) {
-                return;
-            }
             AuthenticationContext context = (AuthenticationContext) eventProperties.get("context");
             if (context != null) {
                 String tenant = context.getTenantDomain();

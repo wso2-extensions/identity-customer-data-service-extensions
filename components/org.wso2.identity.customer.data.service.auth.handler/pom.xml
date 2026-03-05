@@ -47,7 +47,7 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
-                        <Bundle-Description>WSO2 Identity CDS Custom Event Handler Bundle</Bundle-Description>
+                        <Bundle-Description>WSO2 Identity CDS Custom Auth Handler Bundle</Bundle-Description>
                         <Private-Package>
                             org.wso2.identity.cds.auth.handler.internal
                         </Private-Package>

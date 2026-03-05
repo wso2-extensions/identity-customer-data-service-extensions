@@ -53,7 +53,7 @@ public class CDSPostAuthnHandler extends AbstractPostAuthnHandler {
                     String val = cookie.getValue();
                     context.setProperty(CDS_PROFILE_COOKIE, val);
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Setting cds_profile cookie in authentication context: " + val);
+                        LOG.debug("Setting cds_profile cookie in authentication context");
                     }
                     break;
                 }

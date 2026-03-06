@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
@@ -72,7 +73,12 @@ public class AuthEventListener extends AbstractEventHandler {
                 }
                 try {
                     String userId;
-                    userId = context.getLastAuthenticatedUser().getUserId();
+                    AuthenticatedUser authenticatedUser = context.getLastAuthenticatedUser();
+                    if (authenticatedUser == null) {
+                        LOG.debug("Authenticated user is null in authentication context.");
+                        return;
+                    }
+                    userId = authenticatedUser.getUserId();
                     if (StringUtils.isBlank(userId)) {
                         LOG.debug("User ID is blank in authentication context.");
                         return;
@@ -94,7 +100,26 @@ public class AuthEventListener extends AbstractEventHandler {
             if (context != null) {
                 String tenant = context.getTenantDomain();
                 try {
-                    String userId = context.getLastAuthenticatedUser().getUserId();
+                    AuthenticatedUser authenticatedUser = context.getLastAuthenticatedUser();
+                    if (authenticatedUser == null) {
+                        LOG.debug("Authenticated user is null in authentication context.");
+                        if (context.getParameter("AuthenticatedUser") != null) {
+                            LOG.debug("Attempting to extract user Id from context parameters.");
+                            Object userObj = context.getParameter("AuthenticatedUser");
+                            if (userObj instanceof AuthenticatedUser) {
+                                authenticatedUser = (AuthenticatedUser) userObj;
+                                LOG.debug("Successfully extracted authenticated user from context parameters.");
+                            } else {
+                                LOG.debug("AuthenticatedUser is not of type AuthenticatedUser " +
+                                        "in context parameters.");
+                                return;
+                            }
+                        } else {
+                            LOG.debug("No AuthenticatedUser parameter found in context.");
+                            return;
+                        }
+                    }
+                    String userId = authenticatedUser.getUserId();
                     // Extract cds_profile cookie from the request headers
                     String cookieValue = null;
                     if (context.getAuthenticationRequest() != null

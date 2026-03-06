@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
@@ -72,7 +73,12 @@ public class AuthEventListener extends AbstractEventHandler {
                 }
                 try {
                     String userId;
-                    userId = context.getSequenceConfig().getAuthenticatedUser().getUserId();
+                    AuthenticatedUser authenticatedUser = context.getLastAuthenticatedUser();
+                    if (authenticatedUser == null) {
+                        LOG.debug("Authenticated user is null in authentication context.");
+                        return;
+                    }
+                    userId = authenticatedUser.getUserId();
                     if (StringUtils.isBlank(userId)) {
                         LOG.debug("User ID is blank in authentication context.");
                         return;
@@ -80,8 +86,8 @@ public class AuthEventListener extends AbstractEventHandler {
                     Map<String, Object> profileSyncPayload = new HashMap<>();
                     profileSyncPayload.put(PROFILE_COOKIE, cookieValue);
                     profileSyncPayload.put(USER_ID, userId);
-                    profileSyncPayload.put(ORG_HANDLE, context.getProperty(USER_TENANT_DOMAIN));
                     String tenant = context.getTenantDomain();
+                    profileSyncPayload.put(ORG_HANDLE, tenant);
                     CDSClient.triggerIdentityDataSync(event.getEventName(), profileSyncPayload, tenant);
                 } catch (UserIdNotFoundException e) {
                     LOG.warn("User ID not found in authentication context.", e);
@@ -94,7 +100,29 @@ public class AuthEventListener extends AbstractEventHandler {
             if (context != null) {
                 String tenant = context.getTenantDomain();
                 try {
-                    String userId = context.getSequenceConfig().getAuthenticatedUser().getUserId();
+                    AuthenticatedUser authenticatedUser = context.getLastAuthenticatedUser();
+                    if (authenticatedUser == null) {
+                        LOG.debug("Authenticated user is null in authentication context.");
+                        Object userObj = context.getParameter("AuthenticatedUser");
+                        if (userObj != null) {
+                            LOG.debug("Attempting to extract user Id from context parameters.");
+                            if (userObj instanceof AuthenticatedUser) {
+                                authenticatedUser = (AuthenticatedUser) userObj;
+                                LOG.debug("Successfully extracted authenticated user from context parameters.");
+                            } else {
+                                LOG.debug("AuthenticatedUser is not available in context parameters.");
+                                return;
+                            }
+                        } else {
+                            LOG.debug("No AuthenticatedUser parameter found in context.");
+                            return;
+                        }
+                    }
+                    String userId = authenticatedUser.getUserId();
+                    if (StringUtils.isBlank(userId)) {
+                        LOG.debug("User ID is blank in authentication context.");
+                        return;
+                    }
                     // Extract cds_profile cookie from the request headers
                     String cookieValue = null;
                     if (context.getAuthenticationRequest() != null
@@ -109,7 +137,7 @@ public class AuthEventListener extends AbstractEventHandler {
 
                     Map<String, Object> profileSyncPayload = new HashMap<>();
                     profileSyncPayload.put(USER_ID, userId);
-                    profileSyncPayload.put(ORG_HANDLE, context.getProperty(USER_TENANT_DOMAIN));
+                    profileSyncPayload.put(ORG_HANDLE, tenant);
                     if (StringUtils.isNotBlank(cookieValue)) {
                         profileSyncPayload.put(PROFILE_COOKIE, cookieValue);
                     }

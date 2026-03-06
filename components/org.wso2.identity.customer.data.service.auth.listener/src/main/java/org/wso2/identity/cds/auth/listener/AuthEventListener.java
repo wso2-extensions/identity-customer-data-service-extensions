@@ -120,6 +120,10 @@ public class AuthEventListener extends AbstractEventHandler {
                         }
                     }
                     String userId = authenticatedUser.getUserId();
+                    if (StringUtils.isBlank(userId)) {
+                        LOG.debug("User ID is blank in authentication context.");
+                        return;
+                    }
                     // Extract cds_profile cookie from the request headers
                     String cookieValue = null;
                     if (context.getAuthenticationRequest() != null

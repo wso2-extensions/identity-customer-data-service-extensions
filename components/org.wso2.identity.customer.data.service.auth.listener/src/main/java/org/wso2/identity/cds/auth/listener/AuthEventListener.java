@@ -72,7 +72,7 @@ public class AuthEventListener extends AbstractEventHandler {
                 }
                 try {
                     String userId;
-                    userId = context.getSequenceConfig().getAuthenticatedUser().getUserId();
+                    userId = context.getLastAuthenticatedUser().getUserId();
                     if (StringUtils.isBlank(userId)) {
                         LOG.debug("User ID is blank in authentication context.");
                         return;
@@ -80,8 +80,8 @@ public class AuthEventListener extends AbstractEventHandler {
                     Map<String, Object> profileSyncPayload = new HashMap<>();
                     profileSyncPayload.put(PROFILE_COOKIE, cookieValue);
                     profileSyncPayload.put(USER_ID, userId);
-                    profileSyncPayload.put(ORG_HANDLE, context.getProperty(USER_TENANT_DOMAIN));
                     String tenant = context.getTenantDomain();
+                    profileSyncPayload.put(ORG_HANDLE, tenant);
                     CDSClient.triggerIdentityDataSync(event.getEventName(), profileSyncPayload, tenant);
                 } catch (UserIdNotFoundException e) {
                     LOG.warn("User ID not found in authentication context.", e);
@@ -94,7 +94,7 @@ public class AuthEventListener extends AbstractEventHandler {
             if (context != null) {
                 String tenant = context.getTenantDomain();
                 try {
-                    String userId = context.getSequenceConfig().getAuthenticatedUser().getUserId();
+                    String userId = context.getLastAuthenticatedUser().getUserId();
                     // Extract cds_profile cookie from the request headers
                     String cookieValue = null;
                     if (context.getAuthenticationRequest() != null
@@ -109,7 +109,7 @@ public class AuthEventListener extends AbstractEventHandler {
 
                     Map<String, Object> profileSyncPayload = new HashMap<>();
                     profileSyncPayload.put(USER_ID, userId);
-                    profileSyncPayload.put(ORG_HANDLE, context.getProperty(USER_TENANT_DOMAIN));
+                    profileSyncPayload.put(ORG_HANDLE, tenant);
                     if (StringUtils.isNotBlank(cookieValue)) {
                         profileSyncPayload.put(PROFILE_COOKIE, cookieValue);
                     }

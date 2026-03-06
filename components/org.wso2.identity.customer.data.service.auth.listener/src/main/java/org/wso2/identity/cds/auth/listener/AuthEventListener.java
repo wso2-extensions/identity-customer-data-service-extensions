@@ -103,15 +103,14 @@ public class AuthEventListener extends AbstractEventHandler {
                     AuthenticatedUser authenticatedUser = context.getLastAuthenticatedUser();
                     if (authenticatedUser == null) {
                         LOG.debug("Authenticated user is null in authentication context.");
-                        if (context.getParameter("AuthenticatedUser") != null) {
+                        Object userObj = context.getParameter("AuthenticatedUser");
+                        if (userObj != null) {
                             LOG.debug("Attempting to extract user Id from context parameters.");
-                            Object userObj = context.getParameter("AuthenticatedUser");
                             if (userObj instanceof AuthenticatedUser) {
                                 authenticatedUser = (AuthenticatedUser) userObj;
                                 LOG.debug("Successfully extracted authenticated user from context parameters.");
                             } else {
-                                LOG.debug("AuthenticatedUser is not of type AuthenticatedUser " +
-                                        "in context parameters.");
+                                LOG.debug("AuthenticatedUser is not available in context parameters.");
                                 return;
                             }
                         } else {

@@ -65,7 +65,7 @@ public class AuthEventListener extends AbstractEventHandler {
             AuthenticationContext context = (AuthenticationContext) eventProperties.get("context");
             if (context != null) {
                 String cookieValue = (String) context.getProperty(CDS_PROFILE_COOKIE);
-                LOG.debug("cds profile cookie captured during successful authentication context." );
+                LOG.debug("cds profile cookie captured during successful authentication context.");
                 if (cookieValue == null || cookieValue.isEmpty()) {
                     LOG.debug("No cds profile cookie found in the authentication context.");
                     return;

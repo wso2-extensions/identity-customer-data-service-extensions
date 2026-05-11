@@ -21,6 +21,7 @@ package org.wso2.identity.cds.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -28,6 +29,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -40,8 +42,8 @@ public class CDSClient {
 
     private static final Log log = LogFactory.getLog(CDSClient.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String PROFILE_SYNC_API = "%s/t/%s/cds/api/v1/profiles/sync";
-    private static final String PROFILE_SCHEMA_SYNC_API = "%s/t/%s/cds/api/v1/profile-schema/sync";
+    private static final String PROFILE_SYNC_API = "%s/o/%s/cds/api/v1/profiles/sync";
+    private static final String PROFILE_SCHEMA_SYNC_API = "%s/o/%s/cds/api/v1/profile-schema/sync";
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String AUTHORIZATION = "Authorization";
     private static final String APPLICATION_JSON = "application/json";
@@ -52,7 +54,7 @@ public class CDSClient {
         payload.put(EVENT, event);
         try {
             String json = MAPPER.writeValueAsString(payload);
-            String url = buildProfileSyncAPI(tenant);
+            String url = buildProfileSyncAPI();
             doPost(url, json, tenant, "identity-data-sync");
         } catch (IOException e) {
             log.warn("I/O error while triggering CDS identity data sync. tenant="
@@ -62,11 +64,10 @@ public class CDSClient {
 
     // Trigger Profile data sync in CDS
     public static void triggerProfileSync(String event, Map<String, Object> payload, String tenant) {
-
         payload.put(EVENT, event);
         try {
             String json = MAPPER.writeValueAsString(payload);
-            String url = buildProfileSyncAPI(tenant);
+            String url = buildProfileSyncAPI();
             doPost(url, json, tenant, "profile-sync");
         } catch (IOException e) {
             log.warn("I/O error while triggering CDS profile sync. tenant="
@@ -77,7 +78,7 @@ public class CDSClient {
     public static void triggerProfileSchemasync(Map<String, Object> payload, String tenant) {
         try {
             String json = MAPPER.writeValueAsString(payload);
-            String url = buildProfileSchemaSyncAPI(tenant);
+            String url = buildProfileSchemaSyncAPI();
             doPost(url, json, tenant, "profile-schema-sync");
         } catch (IOException e) {
             log.warn("I/O error while triggering CDS profile schema sync. tenant="
@@ -99,8 +100,9 @@ public class CDSClient {
                 int statusCode = response.getStatusLine().getStatusCode();
                 String responseBody = "";
 
-                if (response.getEntity() != null && response.getEntity().getContent() != null) {
-                    responseBody = new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
+                if (response.getEntity() != null) {
+                    String body = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+                    responseBody = body != null ? body : "";
                 }
 
                 if (statusCode == 200 || statusCode == 204) {
@@ -126,7 +128,7 @@ public class CDSClient {
     }
 
     private static CdsError parseCdsError(String responseBody) {
-        if (responseBody == null || responseBody.isBlank()) {
+        if (StringUtils.isBlank(responseBody)) {
             return new CdsError("n/a", "n/a", "n/a");
         }
 
@@ -147,14 +149,12 @@ public class CDSClient {
         return (v == null || v.isNull()) ? defaultValue : v.asText();
     }
 
-    // Build the Profile Sync API URL
-    private static String buildProfileSyncAPI(String tenant) {
-        return String.format(PROFILE_SYNC_API, Utils.getCDSServiceURL(), tenant);
+    private static String buildProfileSyncAPI() {
+        return String.format(PROFILE_SYNC_API, Utils.getCDSServiceURL(), Utils.getCDSOrgId());
     }
 
-    // Build the Profile Schema Sync API URL
-    private static String buildProfileSchemaSyncAPI(String tenant) {
-        return String.format(PROFILE_SCHEMA_SYNC_API, Utils.getCDSServiceURL(), tenant);
+    private static String buildProfileSchemaSyncAPI() {
+        return String.format(PROFILE_SCHEMA_SYNC_API, Utils.getCDSServiceURL(), Utils.getCDSOrgId());
     }
 
     private static final class CdsError {

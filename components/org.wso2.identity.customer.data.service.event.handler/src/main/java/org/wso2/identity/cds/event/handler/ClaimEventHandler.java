@@ -76,7 +76,7 @@ public class ClaimEventHandler extends AbstractEventHandler {
              tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
              Map<String, Object> profileSchemaSyncPayload = new HashMap<>();
              profileSchemaSyncPayload.put(EVENT, eventName);
-             profileSchemaSyncPayload.put(ORG_HANDLE, tenantDomain);
+             profileSchemaSyncPayload.put(ORG_HANDLE, Utils.getCDSOrgId());
              if (LOG.isDebugEnabled()) {
                  LOG.debug("Triggering profile schema sync for event: " + safeLogValue(eventName) +
                         " in tenant: " + safeLogValue(tenantDomain));

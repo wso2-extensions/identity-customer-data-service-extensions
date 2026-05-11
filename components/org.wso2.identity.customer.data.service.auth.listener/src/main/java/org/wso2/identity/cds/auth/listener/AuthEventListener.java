@@ -87,7 +87,7 @@ public class AuthEventListener extends AbstractEventHandler {
                     profileSyncPayload.put(PROFILE_COOKIE, cookieValue);
                     profileSyncPayload.put(USER_ID, userId);
                     String tenant = context.getTenantDomain();
-                    profileSyncPayload.put(ORG_HANDLE, tenant);
+                    profileSyncPayload.put(ORG_HANDLE, Utils.getCDSOrgId());
                     CDSClient.triggerIdentityDataSync(event.getEventName(), profileSyncPayload, tenant);
                 } catch (UserIdNotFoundException e) {
                     LOG.warn("User ID not found in authentication context.", e);
@@ -137,7 +137,7 @@ public class AuthEventListener extends AbstractEventHandler {
 
                     Map<String, Object> profileSyncPayload = new HashMap<>();
                     profileSyncPayload.put(USER_ID, userId);
-                    profileSyncPayload.put(ORG_HANDLE, tenant);
+                    profileSyncPayload.put(ORG_HANDLE, Utils.getCDSOrgId());
                     if (StringUtils.isNotBlank(cookieValue)) {
                         profileSyncPayload.put(PROFILE_COOKIE, cookieValue);
                     }

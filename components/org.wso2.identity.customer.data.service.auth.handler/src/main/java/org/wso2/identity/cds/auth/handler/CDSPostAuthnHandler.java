@@ -47,18 +47,25 @@ public class CDSPostAuthnHandler extends AbstractPostAuthnHandler {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
-        if (request.getCookies() != null) {
-            for (javax.servlet.http.Cookie cookie : request.getCookies()) {
-                if (CDS_PROFILE_COOKIE.equals(cookie.getName())) {
-                    String val = cookie.getValue();
-                    context.setProperty(CDS_PROFILE_COOKIE, val);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Setting cds_profile cookie in authentication context");
-                    }
-                    break;
-                }
+        String val = resolveCDSProfile(request);
+        if (val != null) {
+            context.setProperty(CDS_PROFILE_COOKIE, val);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Setting cds_profile cookie in authentication context");
             }
         }
         return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+    }
+
+    private String resolveCDSProfile(HttpServletRequest request) {
+
+        if (request.getCookies() != null) {
+            for (javax.servlet.http.Cookie cookie : request.getCookies()) {
+                if (CDS_PROFILE_COOKIE.equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return request.getParameter(CDS_PROFILE_COOKIE);
     }
 }

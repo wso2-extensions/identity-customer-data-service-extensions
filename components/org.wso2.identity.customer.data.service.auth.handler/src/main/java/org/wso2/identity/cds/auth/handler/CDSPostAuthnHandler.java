@@ -26,6 +26,8 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.identity.cds.client.Utils;
 
+import java.util.Optional;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -47,25 +49,34 @@ public class CDSPostAuthnHandler extends AbstractPostAuthnHandler {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
-        String val = resolveCDSProfile(request);
-        if (val != null) {
+        resolveCDSProfile(request, context).ifPresent(val -> {
             context.setProperty(CDS_PROFILE_COOKIE, val);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Setting cds_profile cookie in authentication context");
             }
-        }
+        });
         return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
     }
 
-    private String resolveCDSProfile(HttpServletRequest request) {
+    private Optional<String> resolveCDSProfile(HttpServletRequest request, AuthenticationContext context) {
 
         if (request.getCookies() != null) {
             for (javax.servlet.http.Cookie cookie : request.getCookies()) {
                 if (CDS_PROFILE_COOKIE.equals(cookie.getName())) {
-                    return cookie.getValue();
+                    return Optional.ofNullable(cookie.getValue());
                 }
             }
         }
-        return request.getParameter(CDS_PROFILE_COOKIE);
+        // The post-auth handler runs against the sessionDataKey callback request, not the
+        // original /oauth2/authorize request, so request.getParameter() no longer carries
+        // cds_profile. The original /authorize query parameters are preserved on the
+        // AuthenticationContext.
+        if (context.getAuthenticationRequest() != null) {
+            String[] values = context.getAuthenticationRequest().getRequestQueryParam(CDS_PROFILE_COOKIE);
+            if (values != null && values.length > 0) {
+                return Optional.ofNullable(values[0]);
+            }
+        }
+        return Optional.empty();
     }
 }

@@ -47,7 +47,7 @@ public class CDSPostAuthnHandler extends AbstractPostAuthnHandler {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
-        String val = resolveCDSProfile(request);
+        String val = resolveCDSProfile(request, context);
         if (val != null) {
             context.setProperty(CDS_PROFILE_COOKIE, val);
             if (LOG.isDebugEnabled()) {
@@ -57,7 +57,7 @@ public class CDSPostAuthnHandler extends AbstractPostAuthnHandler {
         return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
     }
 
-    private String resolveCDSProfile(HttpServletRequest request) {
+    private String resolveCDSProfile(HttpServletRequest request, AuthenticationContext context) {
 
         if (request.getCookies() != null) {
             for (javax.servlet.http.Cookie cookie : request.getCookies()) {
@@ -66,6 +66,16 @@ public class CDSPostAuthnHandler extends AbstractPostAuthnHandler {
                 }
             }
         }
-        return request.getParameter(CDS_PROFILE_COOKIE);
+        // The post-auth handler runs against the sessionDataKey callback request, not the
+        // original /oauth2/authorize request, so request.getParameter() no longer carries
+        // cds_profile. The original /authorize query parameters are preserved on the
+        // AuthenticationContext.
+        if (context.getAuthenticationRequest() != null) {
+            String[] values = context.getAuthenticationRequest().getRequestQueryParam(CDS_PROFILE_COOKIE);
+            if (values != null && values.length > 0) {
+                return values[0];
+            }
+        }
+        return null;
     }
 }

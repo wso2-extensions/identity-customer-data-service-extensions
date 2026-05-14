@@ -37,7 +37,8 @@ import javax.servlet.http.HttpServletResponse;
 public class CDSPostAuthnHandler extends AbstractPostAuthnHandler {
 
     private static final Log LOG = LogFactory.getLog(CDSPostAuthnHandler.class);
-    private static final String CDS_PROFILE_COOKIE = "cds_profile";
+    private static final String CDS_PROFILE = "cds_profile";
+    private static final String ANONYMOUS_PROFILE_TRACKER = "anonymous_profile_tracker";
 
     @Override
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request,
@@ -50,7 +51,7 @@ public class CDSPostAuthnHandler extends AbstractPostAuthnHandler {
         }
 
         resolveCDSProfile(request, context).ifPresent(val -> {
-            context.setProperty(CDS_PROFILE_COOKIE, val);
+            context.setProperty(CDS_PROFILE, val);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Setting cds_profile cookie in authentication context");
             }
@@ -62,17 +63,17 @@ public class CDSPostAuthnHandler extends AbstractPostAuthnHandler {
 
         if (request.getCookies() != null) {
             for (javax.servlet.http.Cookie cookie : request.getCookies()) {
-                if (CDS_PROFILE_COOKIE.equals(cookie.getName())) {
+                if (CDS_PROFILE.equals(cookie.getName())) {
                     return Optional.ofNullable(cookie.getValue());
                 }
             }
         }
         // The post-auth handler runs against the sessionDataKey callback request, not the
         // original /oauth2/authorize request, so request.getParameter() no longer carries
-        // cds_profile. The original /authorize query parameters are preserved on the
+        // ANONYMOUS_PROFILE_TRACKER. The original /authorize query parameters are preserved on the
         // AuthenticationContext.
         if (context.getAuthenticationRequest() != null) {
-            String[] values = context.getAuthenticationRequest().getRequestQueryParam(CDS_PROFILE_COOKIE);
+            String[] values = context.getAuthenticationRequest().getRequestQueryParam(ANONYMOUS_PROFILE_TRACKER);
             if (values != null && values.length > 0) {
                 return Optional.ofNullable(values[0]);
             }

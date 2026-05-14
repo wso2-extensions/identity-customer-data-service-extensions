@@ -66,9 +66,8 @@ public class CDSPostAuthnHandler extends AbstractPostAuthnHandler {
             for (javax.servlet.http.Cookie cookie : request.getCookies()) {
                 if (CDS_PROFILE.equals(cookie.getName())) {
                     String value = cookie.getValue();
-                    if (StringUtils.isBlank(value)) {
-
-                       return Optional.of(value);
+                    if (StringUtils.isNotBlank(value)) {
+                        return Optional.of(value);
                     }
                     break;
                 }

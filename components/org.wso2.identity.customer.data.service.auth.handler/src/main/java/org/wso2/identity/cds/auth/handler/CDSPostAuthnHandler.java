@@ -18,6 +18,7 @@
 
 package org.wso2.identity.cds.auth.handler;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -25,6 +26,8 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.P
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.identity.cds.client.Utils;
+
+import com.ctc.wstx.util.StringUtil;
 
 import java.util.Optional;
 
@@ -64,7 +67,11 @@ public class CDSPostAuthnHandler extends AbstractPostAuthnHandler {
         if (request.getCookies() != null) {
             for (javax.servlet.http.Cookie cookie : request.getCookies()) {
                 if (CDS_PROFILE.equals(cookie.getName())) {
-                    return Optional.ofNullable(cookie.getValue());
+                    String value = cookie.getValue();
+                    if (StringUtils.isBlank(value)) {
+                       return Optional.of(value);
+                    }
+                    break;
                 }
             }
         }

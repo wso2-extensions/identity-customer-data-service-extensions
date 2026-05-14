@@ -27,8 +27,6 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.identity.cds.client.Utils;
 
-import com.ctc.wstx.util.StringUtil;
-
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;

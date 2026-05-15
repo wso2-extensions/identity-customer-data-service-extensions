@@ -49,6 +49,8 @@ public class AuthEventListener extends AbstractEventHandler {
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
     public static final String PROFILE_COOKIE = "profileCookie";
     private static final String CDS_PROFILE_COOKIE = "cds_profile";
+    private static final String ANONYMOUS_PROFILE_TRACKER = "anonymous_profile_tracker";
+    
     @Override
     public void handleEvent(Event event) throws IdentityEventException {
 
@@ -131,6 +133,14 @@ public class AuthEventListener extends AbstractEventHandler {
                                 .getRequestHeaders().get("cookie");
                         if (StringUtils.isNotBlank(cookieHeader)) {
                             cookieValue = extractCookieValue(cookieHeader, CDS_PROFILE_COOKIE);
+                        }
+                    }
+                    if (StringUtils.isBlank(cookieValue) && context.getAuthenticationRequest() != null) {
+                        String[] trackerValues = context.getAuthenticationRequest()
+                                .getRequestQueryParam(ANONYMOUS_PROFILE_TRACKER);
+                        if (trackerValues != null && trackerValues.length > 0) {
+                            cookieValue = trackerValues[0];
+                            LOG.debug("Anonymous profile tracker captured during logout.");
                         }
                     }
                     LOG.debug("Cookie captured during logout: " + cookieValue);

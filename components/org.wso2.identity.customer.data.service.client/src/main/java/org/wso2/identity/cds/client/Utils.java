@@ -37,6 +37,12 @@ public class Utils {
         return IdentityUtil.getProperty("CustomerDataService.ServerURL");
     }
 
+    private static final String CDS_ORG_ID = "dace5440-fb83-4021-b232-48a7e1143ee6";
+
+    public static String getCDSOrgId() {
+        return CDS_ORG_ID;
+    }
+
   // Get Base64 encoded credentials for CDS admin user
     public static String getBase64EncodedCredentials() {
 

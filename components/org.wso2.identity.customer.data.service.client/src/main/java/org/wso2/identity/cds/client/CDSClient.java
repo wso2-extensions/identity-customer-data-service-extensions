@@ -46,6 +46,8 @@ public class CDSClient {
     private static final String AUTHORIZATION = "Authorization";
     private static final String APPLICATION_JSON = "application/json";
     private static final String EVENT = "event";
+    private static final int HTTP_BAD_REQUEST = 400;
+    private static final String CDS_NOT_ENABLED_ERROR_CODE = "CDS-16001";
 
     // Trigger identity data sync in CDS
     public static void triggerIdentityDataSync(String event, Map<String, Object> payload, String tenant) {
@@ -113,6 +115,14 @@ public class CDSClient {
 
                 CdsError cdsError = parseCdsError(responseBody);
 
+                if (isCdsNotEnabled(statusCode, cdsError.code)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("CDS " + Utils.sanitizeForLog(operation) + " skipped as CDS is not enabled for " +
+                                "tenant: " + sanitizedTenant);
+                    }
+                    return;
+                }
+
                 log.warn(String.format("CDS %s failed for tenant=%s with status=%d, code=%s, message=%s, " +
                                 "description=%s",
                         Utils.sanitizeForLog(operation),
@@ -123,6 +133,18 @@ public class CDSClient {
                         Utils.sanitizeForLog(cdsError.description)));
             }
         }
+    }
+
+    /**
+     * CDS rejects sync requests sent for an organization that has not enabled the customer data service. That is an
+     * expected response for such organizations rather than a sync failure, so it is not logged as a warning.
+     *
+     * @param statusCode HTTP status code of the CDS response.
+     * @param errorCode  Error code returned by CDS.
+     * @return true if the response indicates that CDS is not enabled for the organization.
+     */
+    static boolean isCdsNotEnabled(int statusCode, String errorCode) {
+        return statusCode == HTTP_BAD_REQUEST && CDS_NOT_ENABLED_ERROR_CODE.equals(errorCode);
     }
 
     private static CdsError parseCdsError(String responseBody) {

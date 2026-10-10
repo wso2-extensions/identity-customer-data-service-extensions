@@ -34,5 +34,4 @@ public class Constants {
     public static final String PROFILE_COOKIE_CLAIM = "http://wso2.org/claims/cdsProfile";
     public static final String USER_ID_CLAIM = "http://wso2.org/claims/userid";
 
-
 }

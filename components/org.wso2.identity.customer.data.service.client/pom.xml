@@ -36,6 +36,14 @@
             <artifactId>org.wso2.carbon.identity.event</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.configuration.mgt.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
         </dependency>
@@ -85,6 +93,10 @@
                             com.google.gson;version="${gson.osgi.version.range}",
                             com.fasterxml.jackson.databind;version="${jackson.databind.osgi.version.range}",
                             org.wso2.securevault.*; version="${org.wso2.securevault.import.version.range}",
+                            org.wso2.carbon.identity.configuration.mgt.core.*;
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.*;
+                            version="${org.wso2.carbon.identity.organization.management.core.imp.pkg.version.range}",
                             *
                         </Import-Package>
                     </instructions>

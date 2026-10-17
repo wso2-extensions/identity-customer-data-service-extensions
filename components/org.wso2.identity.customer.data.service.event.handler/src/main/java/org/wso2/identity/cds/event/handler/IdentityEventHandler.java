@@ -54,11 +54,10 @@ public class IdentityEventHandler extends AbstractEventHandler {
     @Override
     public void handleEvent(Event event) throws IdentityEventException {
 
-        if (!Utils.isCDSEnabled()) {
+        Map<String, Object> properties = event.getEventProperties();
+        if (properties == null || !Utils.isCDSEnabled((String) properties.get(TENANT_DOMAIN))) {
             return;
         }
-
-        Map<String, Object> properties = event.getEventProperties();
         String eventName = event.getEventName();
         if (POST_ADD_USER.equals(eventName)) {
             try {

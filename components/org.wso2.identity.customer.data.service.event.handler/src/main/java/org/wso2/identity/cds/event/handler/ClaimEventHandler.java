@@ -56,9 +56,6 @@ public class ClaimEventHandler extends AbstractEventHandler {
     @Override
     public void handleEvent(Event event) throws IdentityEventException {
 
-        if (!Utils.isCDSEnabled()) {
-            return;
-        }
         String eventName = event.getEventName();
          if ("POST_ADD_EXTERNAL_CLAIM".equals(eventName) || "POST_UPDATE_EXTERNAL_CLAIM".equals(eventName) ||
                 "POST_DELETE_EXTERNAL_CLAIM".equals(eventName) || "POST_UPDATE_LOCAL_CLAIM".equals(eventName)) {
@@ -74,6 +71,9 @@ public class ClaimEventHandler extends AbstractEventHandler {
              int tenantId = (Integer) tenantIdObj;
              String tenantDomain;
              tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+             if (!Utils.isCDSEnabled(tenantDomain)) {
+                 return;
+             }
              Map<String, Object> profileSchemaSyncPayload = new HashMap<>();
              profileSchemaSyncPayload.put(EVENT, eventName);
              profileSchemaSyncPayload.put(ORG_HANDLE, tenantDomain);

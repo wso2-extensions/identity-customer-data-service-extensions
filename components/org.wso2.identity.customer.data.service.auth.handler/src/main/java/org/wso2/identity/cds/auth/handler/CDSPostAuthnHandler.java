@@ -47,7 +47,7 @@ public class CDSPostAuthnHandler extends AbstractPostAuthnHandler {
                                              AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
-        if (!Utils.isCDSEnabled()) {
+        if (!Utils.isCDSEnabled(context.getTenantDomain())) {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 

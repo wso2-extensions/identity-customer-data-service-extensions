@@ -54,13 +54,14 @@ public class AuthEventListener extends AbstractEventHandler {
     @Override
     public void handleEvent(Event event) throws IdentityEventException {
 
-        if (!Utils.isCDSEnabled()) {
-            return;
-        }
-
         Map<String, Object> eventProperties = event.getEventProperties();
         if (eventProperties == null) {
             LOG.debug("Event properties are null for event: " + event.getEventName());
+            return;
+        }
+
+        AuthenticationContext authContext = (AuthenticationContext) eventProperties.get("context");
+        if (authContext == null || !Utils.isCDSEnabled(authContext.getTenantDomain())) {
             return;
         }
 

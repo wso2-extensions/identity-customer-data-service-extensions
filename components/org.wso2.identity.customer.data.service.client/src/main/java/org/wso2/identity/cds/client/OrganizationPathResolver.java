@@ -43,11 +43,14 @@ public final class OrganizationPathResolver {
      *
      * @param tenantDomain The tenant domain of a root or of a sub org.
      * @return /t/{root_handle} for a root, or /t/{root_handle}/o/{org_id} for a sub org.
-     * @throws OrganizationManagementException If the org of the tenant domain cannot be resolved.
+     * @throws OrganizationManagementException If the tenant domain is blank, or its org cannot be resolved.
      */
     public static String pathOf(String tenantDomain) throws OrganizationManagementException {
 
-        if (StringUtils.isBlank(tenantDomain) || !OrganizationManagementUtil.isOrganization(tenantDomain)) {
+        if (StringUtils.isBlank(tenantDomain)) {
+            throw new OrganizationManagementServerException("The tenant domain is not available.");
+        }
+        if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
             return TENANT_PATH + tenantDomain;
         }
         OrganizationManager organizationManager = CDSClientDataHolder.getInstance().getOrganizationManager();

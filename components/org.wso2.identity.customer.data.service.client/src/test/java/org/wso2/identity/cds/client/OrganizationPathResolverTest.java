@@ -21,6 +21,7 @@ package org.wso2.identity.cds.client;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -81,6 +82,22 @@ public class OrganizationPathResolverTest {
         when(organizationManager.resolveTenantDomain(ROOT_ID)).thenReturn(ROOT_DOMAIN);
 
         assertEquals(OrganizationPathResolver.pathOf(ORG_DOMAIN), "/t/" + ROOT_DOMAIN + "/o/" + ORG_ID);
+    }
+
+    @Test(dataProvider = "blankTenantDomains", expectedExceptions = OrganizationManagementServerException.class)
+    public void testBlankTenantDomain(String tenantDomain) throws Exception {
+
+        try {
+            OrganizationPathResolver.pathOf(tenantDomain);
+        } finally {
+            organizationManagementUtil.verify(() -> OrganizationManagementUtil.isOrganization(anyString()), never());
+        }
+    }
+
+    @DataProvider
+    public Object[][] blankTenantDomains() {
+
+        return new Object[][]{{null}, {""}, {" "}};
     }
 
     @Test(expectedExceptions = OrganizationManagementServerException.class)

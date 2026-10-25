@@ -85,8 +85,13 @@
                     <instructions>
                         <Bundle-SymbolicName>org.wso2.identity.customer.data.service.client</Bundle-SymbolicName>
                         <Bundle-Name>WSO2 Identity CDS Client</Bundle-Name>
+                        <Private-Package>
+                            org.wso2.identity.cds.client.internal
+                        </Private-Package>
                         <Export-Package>
-                            org.wso2.identity.cds.client;version="${project.version}"
+                            !org.wso2.identity.cds.client.internal,
+                            org.wso2.identity.cds.client;version="${project.version}",
+                            org.wso2.identity.cds.client.config;version="${project.version}"
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.logging,

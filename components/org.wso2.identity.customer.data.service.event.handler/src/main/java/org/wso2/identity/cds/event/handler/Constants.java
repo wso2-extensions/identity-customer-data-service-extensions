@@ -34,12 +34,5 @@ public class Constants {
     public static final String PROFILE_COOKIE_CLAIM = "http://wso2.org/claims/cdsProfile";
     public static final String USER_ID_CLAIM = "http://wso2.org/claims/userid";
 
-    /*
-     * The identity-api-server configs API (/configs/cds) fires this event before it stores the tenant CDS config.
-     * Keep these names the same in both repositories.
-     */
-    public static final String PRE_UPDATE_CDS_CONFIG = "PRE_UPDATE_CDS_CONFIG";
-    public static final String CDS_ENABLED_PROPERTY = "cds_enabled";
-
 
 }

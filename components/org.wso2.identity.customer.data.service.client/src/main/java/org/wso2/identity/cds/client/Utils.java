@@ -51,9 +51,9 @@ public class Utils {
      * The tenant CDS config in the config store. The identity-api-server configs API (/configs/cds) writes this
      * resource. Keep these names the same in both repositories.
      */
-    private static final String CDS_CONFIG_RESOURCE_TYPE = "CDS_CONFIGURATION";
-    private static final String CDS_CONFIG_RESOURCE_NAME = "cds-config";
-    private static final String CDS_CONFIG_ENABLED_ATTRIBUTE = "enabled";
+    public static final String CDS_CONFIG_RESOURCE_TYPE = "CDS_CONFIGURATION";
+    public static final String CDS_CONFIG_RESOURCE_NAME = "cds-config";
+    public static final String CDS_CONFIG_ENABLED_ATTRIBUTE = "enabled";
 
     public static String getCDSServiceURL() {
         return IdentityUtil.getProperty("CustomerDataService.ServerURL");
@@ -120,7 +120,7 @@ public class Utils {
         }
     }
 
-    private static Optional<Boolean> getTenantCDSEnabled(String tenantDomain)
+    public static Optional<Boolean> getTenantCDSEnabled(String tenantDomain)
             throws ConfigurationManagementException {
 
         ConfigurationManager configurationManager = (ConfigurationManager) PrivilegedCarbonContext

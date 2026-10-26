@@ -27,8 +27,9 @@ import org.wso2.identity.cds.client.CDSClientException;
 public interface CDSConfigService {
 
     /**
-     * Get the effective value of the CDS enable config for a tenant. An organization gets the value of its root
-     * organization. If the tenant has no value, the server-level value applies.
+     * Get the effective value of the CDS enable config for a tenant. CDS is enabled for a tenant only if it is
+     * enabled for the server and the tenant value is true. If the tenant has no value, CDS is not enabled for the
+     * tenant. An organization gets the value of its root organization.
      *
      * @param tenantDomain Tenant domain.
      * @return true if CDS is enabled for the tenant.
@@ -42,8 +43,9 @@ public interface CDSConfigService {
      *
      * @param tenantDomain Tenant domain of a root organization.
      * @param cdsEnabled   The new value.
-     * @throws CDSClientException If CDS does not accept the value, or if the value cannot be stored.
-     *                            {@link CDSClientException#isClientError()} is true if CDS refused the value.
+     * @throws CDSClientException If CDS is not enabled for the server, if CDS does not accept the value, or if the
+     *                            value cannot be stored. {@link CDSClientException#isClientError()} is true in
+     *                            the first two cases.
      */
     void updateCDSEnabled(String tenantDomain, boolean cdsEnabled) throws CDSClientException;
 }

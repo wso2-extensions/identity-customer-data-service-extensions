@@ -26,7 +26,6 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.identity.cds.client.CDSClient;
 import org.wso2.identity.cds.client.CDSClientException;
 import org.wso2.identity.cds.client.Utils;
@@ -46,12 +45,11 @@ public class CDSConfigServiceImpl implements CDSConfigService {
     @Override
     public boolean isCDSEnabled(String tenantDomain) throws CDSClientException {
 
+        if (!Utils.isCDSEnabled()) {
+            return false;
+        }
         try {
-            String rootTenantDomain = tenantDomain;
-            if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
-                rootTenantDomain = OrganizationManagementUtil.getRootOrgTenantDomainBySubOrgTenantDomain(tenantDomain);
-            }
-            return Utils.getTenantCDSEnabled(rootTenantDomain).orElseGet(Utils::isCDSEnabled);
+            return Utils.getTenantCDSEnabled(Utils.getRootTenantDomain(tenantDomain)).orElse(false);
         } catch (OrganizationManagementException | ConfigurationManagementException e) {
             throw new CDSClientException("Error while reading the CDS config of the tenant: " +
                     Utils.sanitizeForLog(tenantDomain), e);
@@ -61,6 +59,9 @@ public class CDSConfigServiceImpl implements CDSConfigService {
     @Override
     public void updateCDSEnabled(String tenantDomain, boolean cdsEnabled) throws CDSClientException {
 
+        if (!Utils.isCDSEnabled()) {
+            throw new CDSClientException("CDS is not enabled for the server.", true);
+        }
         // CDS gets the value first. If CDS does not accept it, the value is not stored.
         CDSClient.updateCDSConfig(tenantDomain, cdsEnabled);
         try {

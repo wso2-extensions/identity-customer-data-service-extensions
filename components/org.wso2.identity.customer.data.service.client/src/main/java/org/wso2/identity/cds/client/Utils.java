@@ -95,29 +95,40 @@ public class Utils {
     }
 
     /**
-     * Get the effective value of the CDS enable config for a tenant. The tenant value in the config store wins.
-     * If the tenant has no value, the server-level value applies. An organization uses the value of its root
-     * organization.
+     * Get the effective value of the CDS enable config for a tenant. CDS is enabled for a tenant only if it is
+     * enabled for the server and the tenant value in the config store is true. If the tenant has no value, CDS is
+     * not enabled for the tenant. An organization uses the value of its root organization.
      *
      * @param tenantDomain Tenant domain.
      * @return true if CDS is enabled for the tenant.
      */
     public static boolean isCDSEnabled(String tenantDomain) {
 
-        if (StringUtils.isBlank(tenantDomain)) {
-            return isCDSEnabled();
+        if (!isCDSEnabled() || StringUtils.isBlank(tenantDomain)) {
+            return false;
         }
         try {
-            String rootTenantDomain = tenantDomain;
-            if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
-                rootTenantDomain = OrganizationManagementUtil.getRootOrgTenantDomainBySubOrgTenantDomain(tenantDomain);
-            }
-            return getTenantCDSEnabled(rootTenantDomain).orElseGet(Utils::isCDSEnabled);
+            return getTenantCDSEnabled(getRootTenantDomain(tenantDomain)).orElse(false);
         } catch (OrganizationManagementException | ConfigurationManagementException e) {
             LOG.warn("Error while reading the CDS config of the tenant: " + sanitizeForLog(tenantDomain) +
-                    ". The server-level value is used.", e);
-            return isCDSEnabled();
+                    ". CDS is not enabled for the tenant.", e);
+            return false;
         }
+    }
+
+    /**
+     * Get the tenant domain of the root organization. A root organization gets its own tenant domain.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return Tenant domain of the root organization.
+     * @throws OrganizationManagementException If the root organization cannot be resolved.
+     */
+    public static String getRootTenantDomain(String tenantDomain) throws OrganizationManagementException {
+
+        if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
+            return OrganizationManagementUtil.getRootOrgTenantDomainBySubOrgTenantDomain(tenantDomain);
+        }
+        return tenantDomain;
     }
 
     public static Optional<Boolean> getTenantCDSEnabled(String tenantDomain)

@@ -27,7 +27,9 @@ import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.identity.cds.client.CDSClient;
-import org.wso2.identity.cds.client.Utils;
+import org.wso2.identity.cds.config.mgt.CDSConfigService;
+import org.wso2.identity.cds.config.mgt.exception.CDSConfigMgtException;
+import org.wso2.identity.cds.event.handler.internal.EventHandlerDataHolder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -71,7 +73,7 @@ public class ClaimEventHandler extends AbstractEventHandler {
              int tenantId = (Integer) tenantIdObj;
              String tenantDomain;
              tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-             if (!Utils.isCDSEnabled(tenantDomain)) {
+             if (!isCDSEnabled(tenantDomain)) {
                  return;
              }
              Map<String, Object> profileSchemaSyncPayload = new HashMap<>();
@@ -88,5 +90,19 @@ public class ClaimEventHandler extends AbstractEventHandler {
     @Override
     public String getName() {
         return "cds.claim.event.handler";
+    }
+
+    private boolean isCDSEnabled(String tenantDomain) {
+
+        CDSConfigService cdsConfigService = EventHandlerDataHolder.getCDSConfigService();
+        if (cdsConfigService == null) {
+            return false;
+        }
+        try {
+            return cdsConfigService.isCDSEnabled(tenantDomain);
+        } catch (CDSConfigMgtException e) {
+            LOG.warn(e.getMessage() + ". CDS is not enabled for the tenant.", e);
+            return false;
+        }
     }
 }

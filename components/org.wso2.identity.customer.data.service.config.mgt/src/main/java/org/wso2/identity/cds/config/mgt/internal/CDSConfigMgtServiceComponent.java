@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.identity.cds.client.internal;
+package org.wso2.identity.cds.config.mgt.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,15 +24,15 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.wso2.identity.cds.client.config.CDSConfigService;
+import org.wso2.identity.cds.config.mgt.CDSConfigService;
 
 /**
- * OSGi component of the CDS client. It registers {@link CDSConfigService}.
+ * OSGi component that registers the CDS config service.
  */
-@Component(name = "org.wso2.identity.cds.client", immediate = true)
-public class CDSClientServiceComponent {
+@Component(name = "org.wso2.identity.cds.config.mgt", immediate = true)
+public class CDSConfigMgtServiceComponent {
 
-    private static final Log log = LogFactory.getLog(CDSClientServiceComponent.class);
+    private static final Log log = LogFactory.getLog(CDSConfigMgtServiceComponent.class);
 
     @Activate
     protected void activate(ComponentContext ctx) {
@@ -45,7 +45,7 @@ public class CDSClientServiceComponent {
     protected void deactivate(ComponentContext ctx) {
 
         if (log.isDebugEnabled()) {
-            log.debug("CDS client component deactivated.");
+            log.debug("CDS config management component deactivated.");
         }
     }
 }

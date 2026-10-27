@@ -16,23 +16,29 @@
  * under the License.
  */
 
-package org.wso2.identity.cds.client.internal;
+package org.wso2.identity.cds.config.mgt.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.identity.cds.client.CDSClient;
 import org.wso2.identity.cds.client.CDSClientException;
 import org.wso2.identity.cds.client.Utils;
-import org.wso2.identity.cds.client.config.CDSConfigService;
+import org.wso2.identity.cds.config.mgt.CDSConfigService;
+import org.wso2.identity.cds.config.mgt.exception.CDSConfigMgtException;
 
 import java.util.Collections;
+import java.util.Optional;
 
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS;
 
@@ -42,28 +48,36 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
  */
 public class CDSConfigServiceImpl implements CDSConfigService {
 
-    @Override
-    public boolean isCDSEnabled(String tenantDomain) throws CDSClientException {
+    private static final String CDS_CONFIG_RESOURCE_TYPE = "CDS_CONFIGURATION";
+    private static final String CDS_CONFIG_RESOURCE_NAME = "cds-config";
+    private static final String CDS_CONFIG_ENABLED_ATTRIBUTE = "enabled";
 
-        if (!Utils.isCDSEnabled()) {
+    @Override
+    public boolean isCDSEnabled(String tenantDomain) throws CDSConfigMgtException {
+
+        if (!Utils.isCDSEnabled() || StringUtils.isBlank(tenantDomain)) {
             return false;
         }
         try {
-            return Utils.getTenantCDSEnabled(Utils.getRootTenantDomain(tenantDomain)).orElse(false);
+            return getTenantCDSEnabled(getRootTenantDomain(tenantDomain)).orElse(false);
         } catch (OrganizationManagementException | ConfigurationManagementException e) {
-            throw new CDSClientException("Error while reading the CDS config of the tenant: " +
+            throw new CDSConfigMgtException("Error while reading the CDS config of the tenant: " +
                     Utils.sanitizeForLog(tenantDomain), e);
         }
     }
 
     @Override
-    public void updateCDSEnabled(String tenantDomain, boolean cdsEnabled) throws CDSClientException {
+    public void updateCDSEnabled(String tenantDomain, boolean cdsEnabled) throws CDSConfigMgtException {
 
         if (!Utils.isCDSEnabled()) {
-            throw new CDSClientException("CDS is not enabled for the server.", true);
+            throw new CDSConfigMgtException("CDS is not enabled for the server.", true);
         }
         // CDS gets the value first. If CDS does not accept it, the value is not stored.
-        CDSClient.updateCDSConfig(tenantDomain, cdsEnabled);
+        try {
+            CDSClient.updateCDSConfig(tenantDomain, cdsEnabled);
+        } catch (CDSClientException e) {
+            throw new CDSConfigMgtException(e.getMessage(), e.isClientError(), e);
+        }
         try {
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
@@ -71,29 +85,69 @@ public class CDSConfigServiceImpl implements CDSConfigService {
             carbonContext.setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
             storeCDSEnabled(cdsEnabled);
         } catch (ConfigurationManagementException e) {
-            throw new CDSClientException("Error while storing the CDS config of the tenant: " +
+            throw new CDSConfigMgtException("Error while storing the CDS config of the tenant: " +
                     Utils.sanitizeForLog(tenantDomain), e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
     }
 
-    private void storeCDSEnabled(boolean cdsEnabled) throws ConfigurationManagementException, CDSClientException {
+    /**
+     * Get the tenant domain of the root organization. A root organization gets its own tenant domain.
+     */
+    private String getRootTenantDomain(String tenantDomain) throws OrganizationManagementException {
+
+        if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
+            return OrganizationManagementUtil.getRootOrgTenantDomainBySubOrgTenantDomain(tenantDomain);
+        }
+        return tenantDomain;
+    }
+
+    private Optional<Boolean> getTenantCDSEnabled(String tenantDomain) throws ConfigurationManagementException {
+
+        ConfigurationManager configurationManager = (ConfigurationManager) PrivilegedCarbonContext
+                .getThreadLocalCarbonContext().getOSGiService(ConfigurationManager.class, null);
+        if (configurationManager == null) {
+            return Optional.empty();
+        }
+        Resource resource;
+        try {
+            resource = configurationManager.getResourceByTenantId(IdentityTenantUtil.getTenantId(tenantDomain),
+                    CDS_CONFIG_RESOURCE_TYPE, CDS_CONFIG_RESOURCE_NAME);
+        } catch (ConfigurationManagementException e) {
+            if (ERROR_CODE_RESOURCE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode()) ||
+                    ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
+                return Optional.empty();
+            }
+            throw e;
+        }
+        if (resource == null || resource.getAttributes() == null) {
+            return Optional.empty();
+        }
+        for (Attribute attribute : resource.getAttributes()) {
+            if (CDS_CONFIG_ENABLED_ATTRIBUTE.equals(attribute.getKey())) {
+                return Optional.of(Boolean.parseBoolean(attribute.getValue()));
+            }
+        }
+        return Optional.empty();
+    }
+
+    private void storeCDSEnabled(boolean cdsEnabled) throws ConfigurationManagementException, CDSConfigMgtException {
 
         ConfigurationManager configurationManager = getConfigurationManager();
         ResourceAdd resourceAdd = new ResourceAdd();
-        resourceAdd.setName(Utils.CDS_CONFIG_RESOURCE_NAME);
+        resourceAdd.setName(CDS_CONFIG_RESOURCE_NAME);
         resourceAdd.setAttributes(Collections.singletonList(
-                new Attribute(Utils.CDS_CONFIG_ENABLED_ATTRIBUTE, String.valueOf(cdsEnabled))));
+                new Attribute(CDS_CONFIG_ENABLED_ATTRIBUTE, String.valueOf(cdsEnabled))));
         try {
-            configurationManager.replaceResource(Utils.CDS_CONFIG_RESOURCE_TYPE, resourceAdd);
+            configurationManager.replaceResource(CDS_CONFIG_RESOURCE_TYPE, resourceAdd);
         } catch (ConfigurationManagementException e) {
             if (!ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
                 throw e;
             }
             // The resource type is created on the first update.
             addCDSConfigResourceType(configurationManager);
-            configurationManager.replaceResource(Utils.CDS_CONFIG_RESOURCE_TYPE, resourceAdd);
+            configurationManager.replaceResource(CDS_CONFIG_RESOURCE_TYPE, resourceAdd);
         }
     }
 
@@ -101,7 +155,7 @@ public class CDSConfigServiceImpl implements CDSConfigService {
             throws ConfigurationManagementException {
 
         ResourceTypeAdd resourceType = new ResourceTypeAdd();
-        resourceType.setName(Utils.CDS_CONFIG_RESOURCE_TYPE);
+        resourceType.setName(CDS_CONFIG_RESOURCE_TYPE);
         resourceType.setDescription("Resource type for the Customer Data Service configuration.");
         try {
             configurationManager.addResourceType(resourceType);
@@ -112,12 +166,12 @@ public class CDSConfigServiceImpl implements CDSConfigService {
         }
     }
 
-    private ConfigurationManager getConfigurationManager() throws CDSClientException {
+    private ConfigurationManager getConfigurationManager() throws CDSConfigMgtException {
 
         ConfigurationManager configurationManager = (ConfigurationManager) PrivilegedCarbonContext
                 .getThreadLocalCarbonContext().getOSGiService(ConfigurationManager.class, null);
         if (configurationManager == null) {
-            throw new CDSClientException("The configuration management service is not available.", false);
+            throw new CDSConfigMgtException("The configuration management service is not available.", false);
         }
         return configurationManager;
     }

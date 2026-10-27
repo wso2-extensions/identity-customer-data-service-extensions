@@ -36,14 +36,6 @@
             <artifactId>org.wso2.carbon.identity.event</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.configuration.mgt.core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
-            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
         </dependency>
@@ -85,23 +77,14 @@
                     <instructions>
                         <Bundle-SymbolicName>org.wso2.identity.customer.data.service.client</Bundle-SymbolicName>
                         <Bundle-Name>WSO2 Identity CDS Client</Bundle-Name>
-                        <Private-Package>
-                            org.wso2.identity.cds.client.internal
-                        </Private-Package>
                         <Export-Package>
-                            !org.wso2.identity.cds.client.internal,
-                            org.wso2.identity.cds.client;version="${project.version}",
-                            org.wso2.identity.cds.client.config;version="${project.version}"
+                            org.wso2.identity.cds.client;version="${project.version}"
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.logging,
                             com.google.gson;version="${gson.osgi.version.range}",
                             com.fasterxml.jackson.databind;version="${jackson.databind.osgi.version.range}",
                             org.wso2.securevault.*; version="${org.wso2.securevault.import.version.range}",
-                            org.wso2.carbon.identity.configuration.mgt.core.*;
-                            version="${carbon.identity.framework.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.organization.management.service.*;
-                            version="${org.wso2.carbon.identity.organization.management.core.imp.pkg.version.range}",
                             *
                         </Import-Package>
                     </instructions>

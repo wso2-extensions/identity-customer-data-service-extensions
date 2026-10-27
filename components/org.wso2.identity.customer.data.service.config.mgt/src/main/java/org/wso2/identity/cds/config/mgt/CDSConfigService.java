@@ -16,13 +16,13 @@
  * under the License.
  */
 
-package org.wso2.identity.cds.client.config;
+package org.wso2.identity.cds.config.mgt;
 
-import org.wso2.identity.cds.client.CDSClientException;
+import org.wso2.identity.cds.config.mgt.exception.CDSConfigMgtException;
 
 /**
- * OSGi service for the tenant CDS enable config. The identity-api-server configs API (/configs/cds) uses this
- * service.
+ * OSGi service for the tenant CDS enable config. The identity-api-server configs API (/configs/cds) and the CDS
+ * event handlers use this service.
  */
 public interface CDSConfigService {
 
@@ -33,9 +33,9 @@ public interface CDSConfigService {
      *
      * @param tenantDomain Tenant domain.
      * @return true if CDS is enabled for the tenant.
-     * @throws CDSClientException If the value cannot be read.
+     * @throws CDSConfigMgtException If the value cannot be read.
      */
-    boolean isCDSEnabled(String tenantDomain) throws CDSClientException;
+    boolean isCDSEnabled(String tenantDomain) throws CDSConfigMgtException;
 
     /**
      * Update the CDS enable config of a root tenant. The value goes to CDS first. If CDS does not accept the
@@ -43,9 +43,9 @@ public interface CDSConfigService {
      *
      * @param tenantDomain Tenant domain of a root organization.
      * @param cdsEnabled   The new value.
-     * @throws CDSClientException If CDS is not enabled for the server, if CDS does not accept the value, or if the
-     *                            value cannot be stored. {@link CDSClientException#isClientError()} is true in
-     *                            the first two cases.
+     * @throws CDSConfigMgtException If CDS is not enabled for the server, if CDS does not accept the value, or if
+     *                               the value cannot be stored. {@link CDSConfigMgtException#isClientError()} is
+     *                               true in the first two cases.
      */
-    void updateCDSEnabled(String tenantDomain, boolean cdsEnabled) throws CDSClientException;
+    void updateCDSEnabled(String tenantDomain, boolean cdsEnabled) throws CDSConfigMgtException;
 }

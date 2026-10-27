@@ -41,6 +41,7 @@
 
     <modules>
         <module>components/org.wso2.identity.customer.data.service.client</module>
+        <module>components/org.wso2.identity.customer.data.service.config.mgt</module>
         <module>components/org.wso2.identity.customer.data.service.event.handler</module>
         <module>components/org.wso2.identity.customer.data.service.auth.listener</module>
         <module>components/org.wso2.identity.customer.data.service.auth.handler</module>
@@ -56,6 +57,11 @@
             <dependency>
                 <groupId>org.wso2.identity.customer.data.service</groupId>
                 <artifactId>org.wso2.identity.customer.data.service.client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.identity.customer.data.service</groupId>
+                <artifactId>org.wso2.identity.customer.data.service.config.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

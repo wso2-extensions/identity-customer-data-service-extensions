@@ -27,8 +27,10 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
+import org.wso2.identity.cds.auth.listener.internal.AuthListenerServiceDataHolder;
 import org.wso2.identity.cds.client.CDSClient;
-import org.wso2.identity.cds.client.Utils;
+import org.wso2.identity.cds.config.mgt.CDSConfigService;
+import org.wso2.identity.cds.config.mgt.exception.CDSConfigMgtException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -61,7 +63,7 @@ public class AuthEventListener extends AbstractEventHandler {
         }
 
         AuthenticationContext authContext = (AuthenticationContext) eventProperties.get("context");
-        if (authContext == null || !Utils.isCDSEnabled(authContext.getTenantDomain())) {
+        if (authContext == null || !isCDSEnabled(authContext.getTenantDomain())) {
             return;
         }
 
@@ -177,5 +179,19 @@ public class AuthEventListener extends AbstractEventHandler {
     @Override
     public String getName() {
         return "cds.authentication.listener";
+    }
+
+    private boolean isCDSEnabled(String tenantDomain) {
+
+        CDSConfigService cdsConfigService = AuthListenerServiceDataHolder.getCDSConfigService();
+        if (cdsConfigService == null) {
+            return false;
+        }
+        try {
+            return cdsConfigService.isCDSEnabled(tenantDomain);
+        } catch (CDSConfigMgtException e) {
+            LOG.warn(e.getMessage() + ". CDS is not enabled for the tenant.", e);
+            return false;
+        }
     }
 }

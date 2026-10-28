@@ -25,44 +25,21 @@ public class CDSConfigMgtException extends Exception {
 
     private static final long serialVersionUID = 6826404383927640861L;
 
-    private final boolean clientError;
+    private String errorCode;
 
-    /**
-     * @param message     Error message.
-     * @param clientError true if the request content caused the error.
-     */
-    public CDSConfigMgtException(String message, boolean clientError) {
+    public CDSConfigMgtException() {
 
-        super(message);
-        this.clientError = clientError;
+        super();
     }
 
-    /**
-     * @param message Error message.
-     * @param cause   Exception to be wrapped.
-     */
-    public CDSConfigMgtException(String message, Throwable cause) {
+    public CDSConfigMgtException(String message, String errorCode, Throwable cause) {
 
         super(message, cause);
-        this.clientError = false;
+        this.errorCode = errorCode;
     }
 
-    /**
-     * @param message     Error message.
-     * @param clientError true if the request content caused the error.
-     * @param cause       Exception to be wrapped.
-     */
-    public CDSConfigMgtException(String message, boolean clientError, Throwable cause) {
+    public String getErrorCode() {
 
-        super(message, cause);
-        this.clientError = clientError;
-    }
-
-    /**
-     * @return true if the request content caused the error.
-     */
-    public boolean isClientError() {
-
-        return clientError;
+        return errorCode;
     }
 }

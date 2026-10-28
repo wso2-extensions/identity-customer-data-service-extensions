@@ -33,7 +33,11 @@ import org.wso2.identity.cds.client.CDSClient;
 import org.wso2.identity.cds.client.CDSClientException;
 import org.wso2.identity.cds.client.Utils;
 import org.wso2.identity.cds.config.mgt.CDSConfigService;
+import org.wso2.identity.cds.config.mgt.constant.CDSConfigMgtConstants.ErrorMessages;
+import org.wso2.identity.cds.config.mgt.exception.CDSConfigMgtClientException;
 import org.wso2.identity.cds.config.mgt.exception.CDSConfigMgtException;
+import org.wso2.identity.cds.config.mgt.exception.CDSConfigMgtServerException;
+import org.wso2.identity.cds.config.mgt.model.CDSConfig;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -41,6 +45,11 @@ import java.util.Optional;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS;
+import static org.wso2.identity.cds.config.mgt.constant.CDSConfigMgtConstants.ErrorMessages.ERROR_CODE_CDS_CONFIG_RETRIEVE;
+import static org.wso2.identity.cds.config.mgt.constant.CDSConfigMgtConstants.ErrorMessages.ERROR_CODE_CDS_CONFIG_SYNC;
+import static org.wso2.identity.cds.config.mgt.constant.CDSConfigMgtConstants.ErrorMessages.ERROR_CODE_CDS_CONFIG_UPDATE;
+import static org.wso2.identity.cds.config.mgt.constant.CDSConfigMgtConstants.ErrorMessages.ERROR_CODE_CDS_NOT_ENABLED;
+import static org.wso2.identity.cds.config.mgt.constant.CDSConfigMgtConstants.ErrorMessages.ERROR_CODE_INVALID_CDS_CONFIG;
 
 /**
  * Implementation of {@link CDSConfigService}. The value is in the config store: resource type CDS_CONFIGURATION,
@@ -53,40 +62,44 @@ public class CDSConfigServiceImpl implements CDSConfigService {
     private static final String CDS_CONFIG_ENABLED_ATTRIBUTE = "enabled";
 
     @Override
-    public boolean isCDSEnabled(String tenantDomain) throws CDSConfigMgtException {
+    public CDSConfig getCDSConfig(String tenantDomain) throws CDSConfigMgtException {
 
         if (!Utils.isCDSEnabled() || StringUtils.isBlank(tenantDomain)) {
-            return false;
+            return new CDSConfig(false);
         }
         try {
-            return getTenantCDSEnabled(getRootTenantDomain(tenantDomain)).orElse(false);
+            return new CDSConfig(getTenantCDSEnabled(getRootTenantDomain(tenantDomain)).orElse(false));
         } catch (OrganizationManagementException | ConfigurationManagementException e) {
-            throw new CDSConfigMgtException("Error while reading the CDS config of the tenant: " +
-                    Utils.sanitizeForLog(tenantDomain), e);
+            throw serverException(ERROR_CODE_CDS_CONFIG_RETRIEVE, e, Utils.sanitizeForLog(tenantDomain));
         }
     }
 
     @Override
-    public void updateCDSEnabled(String tenantDomain, boolean cdsEnabled) throws CDSConfigMgtException {
+    public void updateCDSConfig(CDSConfig cdsConfig, String tenantDomain) throws CDSConfigMgtException {
 
         if (!Utils.isCDSEnabled()) {
-            throw new CDSConfigMgtException("CDS is not enabled for the server.", true);
+            throw new CDSConfigMgtClientException(ERROR_CODE_CDS_NOT_ENABLED.getDescription(),
+                    ERROR_CODE_CDS_NOT_ENABLED.getCode(), null);
         }
-        // CDS gets the value first. If CDS does not accept it, the value is not stored.
+        // CDS gets the configuration first. If CDS does not accept it, the configuration is not stored.
         try {
-            CDSClient.updateCDSConfig(tenantDomain, cdsEnabled);
+            CDSClient.updateCDSConfig(tenantDomain, cdsConfig.isEnabled());
         } catch (CDSClientException e) {
-            throw new CDSConfigMgtException(e.getMessage(), e.isClientError(), e);
+            if (e.isClientError()) {
+                throw new CDSConfigMgtClientException(String.format(
+                        ERROR_CODE_INVALID_CDS_CONFIG.getDescription(), Utils.sanitizeForLog(tenantDomain),
+                        e.getMessage()), ERROR_CODE_INVALID_CDS_CONFIG.getCode(), e);
+            }
+            throw serverException(ERROR_CODE_CDS_CONFIG_SYNC, e, Utils.sanitizeForLog(tenantDomain), e.getMessage());
         }
         try {
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
             carbonContext.setTenantDomain(tenantDomain);
             carbonContext.setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
-            storeCDSEnabled(cdsEnabled);
+            storeCDSEnabled(cdsConfig.isEnabled());
         } catch (ConfigurationManagementException e) {
-            throw new CDSConfigMgtException("Error while storing the CDS config of the tenant: " +
-                    Utils.sanitizeForLog(tenantDomain), e);
+            throw serverException(ERROR_CODE_CDS_CONFIG_UPDATE, e, Utils.sanitizeForLog(tenantDomain));
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
@@ -132,7 +145,7 @@ public class CDSConfigServiceImpl implements CDSConfigService {
         return Optional.empty();
     }
 
-    private void storeCDSEnabled(boolean cdsEnabled) throws ConfigurationManagementException, CDSConfigMgtException {
+    private void storeCDSEnabled(boolean cdsEnabled) throws ConfigurationManagementException {
 
         ConfigurationManager configurationManager = getConfigurationManager();
         ResourceAdd resourceAdd = new ResourceAdd();
@@ -166,13 +179,19 @@ public class CDSConfigServiceImpl implements CDSConfigService {
         }
     }
 
-    private ConfigurationManager getConfigurationManager() throws CDSConfigMgtException {
+    private ConfigurationManager getConfigurationManager() throws ConfigurationManagementException {
 
         ConfigurationManager configurationManager = (ConfigurationManager) PrivilegedCarbonContext
                 .getThreadLocalCarbonContext().getOSGiService(ConfigurationManager.class, null);
         if (configurationManager == null) {
-            throw new CDSConfigMgtException("The configuration management service is not available.", false);
+            throw new ConfigurationManagementException("The configuration management service is not available.",
+                    null);
         }
         return configurationManager;
+    }
+
+    private CDSConfigMgtServerException serverException(ErrorMessages error, Throwable cause, Object... data) {
+
+        return new CDSConfigMgtServerException(String.format(error.getDescription(), data), error.getCode(), cause);
     }
 }

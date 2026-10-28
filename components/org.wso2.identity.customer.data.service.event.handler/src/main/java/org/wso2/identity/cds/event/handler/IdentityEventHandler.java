@@ -155,7 +155,7 @@ public class IdentityEventHandler extends AbstractEventHandler {
             return false;
         }
         try {
-            return cdsConfigService.isCDSEnabled(tenantDomain);
+            return cdsConfigService.getCDSConfig(tenantDomain).isEnabled();
         } catch (CDSConfigMgtException e) {
             LOG.warn(e.getMessage() + ". CDS is not enabled for the tenant.", e);
             return false;

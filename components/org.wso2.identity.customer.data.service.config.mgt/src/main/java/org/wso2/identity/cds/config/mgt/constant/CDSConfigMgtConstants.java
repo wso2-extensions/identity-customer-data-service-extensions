@@ -23,8 +23,6 @@ package org.wso2.identity.cds.config.mgt.constant;
  */
 public class CDSConfigMgtConstants {
 
-    private static final String ERROR_CODE_PREFIX = "CDSCM-";
-
     private CDSConfigMgtConstants() {
 
     }
@@ -34,19 +32,19 @@ public class CDSConfigMgtConstants {
      */
     public enum ErrorMessages {
 
-        ERROR_CODE_CDS_NOT_ENABLED("60001",
+        ERROR_CODE_CDS_NOT_ENABLED("60022",
                 "CDS is not enabled.",
                 "The Customer Data Service is not enabled for the server."),
-        ERROR_CODE_INVALID_CDS_CONFIG("60002",
+        ERROR_CODE_INVALID_CDS_CONFIG("60023",
                 "Invalid CDS configuration.",
                 "The Customer Data Service did not accept the configuration of %s. %s"),
-        ERROR_CODE_CDS_CONFIG_RETRIEVE("65001",
+        ERROR_CODE_CDS_CONFIG_RETRIEVE("65045",
                 "Unable to retrieve CDS configuration.",
                 "Server encountered an error while retrieving the CDS configuration of %s."),
-        ERROR_CODE_CDS_CONFIG_UPDATE("65002",
+        ERROR_CODE_CDS_CONFIG_UPDATE("65046",
                 "Unable to update CDS configuration.",
                 "Server encountered an error while updating the CDS configuration of %s."),
-        ERROR_CODE_CDS_CONFIG_SYNC("65003",
+        ERROR_CODE_CDS_CONFIG_SYNC("65047",
                 "Unable to update CDS configuration.",
                 "Server encountered an error while sending the CDS configuration of %s to the Customer Data " +
                         "Service. %s");
@@ -64,7 +62,7 @@ public class CDSConfigMgtConstants {
 
         public String getCode() {
 
-            return ERROR_CODE_PREFIX + code;
+            return code;
         }
 
         public String getMessage() {

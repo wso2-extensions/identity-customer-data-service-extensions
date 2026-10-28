@@ -21,9 +21,11 @@ package org.wso2.identity.cds.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -31,6 +33,7 @@ import org.apache.http.impl.client.HttpClients;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -42,6 +45,8 @@ public class CDSClient {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String PROFILE_SYNC_API = "%s/t/%s/cds/api/v1/profiles/sync";
     private static final String PROFILE_SCHEMA_SYNC_API = "%s/t/%s/cds/api/v1/profile-schema/sync";
+    private static final String CONFIG_API = "%s/t/%s/cds/api/v1/config";
+    private static final String CDS_ENABLED = "cds_enabled";
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String AUTHORIZATION = "Authorization";
     private static final String APPLICATION_JSON = "application/json";
@@ -84,6 +89,56 @@ public class CDSClient {
         } catch (IOException e) {
             log.warn("I/O error while triggering CDS profile schema sync. tenant="
                     + Utils.sanitizeForLog(tenant), e);
+        }
+    }
+
+    /**
+     * Send the CDS enable config of a tenant to CDS with PATCH /config. The call is synchronous, so the caller
+     * knows if CDS accepted the value.
+     *
+     * @param tenant     Tenant domain.
+     * @param cdsEnabled The new value.
+     * @throws CDSClientException If CDS is not configured, CDS cannot be reached, or CDS does not accept the value.
+     */
+    public static void updateCDSConfig(String tenant, boolean cdsEnabled) throws CDSClientException {
+
+        String serviceURL = Utils.getCDSServiceURL();
+        String credentials = Utils.getBase64EncodedCredentials();
+        if (StringUtils.isBlank(serviceURL) || StringUtils.isBlank(credentials)) {
+            throw new CDSClientException("The Customer Data Service is not configured. Set server_url, " +
+                    "admin_username and admin_password in [customer_data_service] of deployment.toml.", false);
+        }
+
+        String sanitizedTenant = Utils.sanitizeForLog(tenant);
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPatch httpPatch = new HttpPatch(String.format(CONFIG_API, serviceURL, tenant));
+            httpPatch.setEntity(new StringEntity(
+                    MAPPER.writeValueAsString(Collections.singletonMap(CDS_ENABLED, cdsEnabled)),
+                    StandardCharsets.UTF_8));
+            httpPatch.setHeader(CONTENT_TYPE, APPLICATION_JSON);
+            httpPatch.setHeader(AUTHORIZATION, "Basic " + credentials);
+
+            try (CloseableHttpResponse response = client.execute(httpPatch)) {
+                int statusCode = response.getStatusLine().getStatusCode();
+                if (statusCode == 200 || statusCode == 204) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("CDS config update succeeded for tenant: " + sanitizedTenant);
+                    }
+                    return;
+                }
+
+                String responseBody = "";
+                if (response.getEntity() != null && response.getEntity().getContent() != null) {
+                    responseBody = new String(response.getEntity().getContent().readAllBytes(),
+                            StandardCharsets.UTF_8);
+                }
+                CdsError cdsError = parseCdsError(responseBody);
+                throw new CDSClientException(String.format("The Customer Data Service returned status %d, code %s: %s",
+                        statusCode, cdsError.code, cdsError.description), statusCode == HTTP_BAD_REQUEST);
+            }
+        } catch (IOException e) {
+            log.warn("I/O error while updating the CDS config. tenant=" + sanitizedTenant, e);
+            throw new CDSClientException("The Customer Data Service cannot be reached.", e);
         }
     }
 

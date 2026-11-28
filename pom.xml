@@ -27,7 +27,7 @@
 
     <groupId>org.wso2.identity.customer.data.service</groupId>
     <artifactId>extensions</artifactId>
-    <version>0.1.25-SNAPSHOT</version>
+    <version>0.1.26-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Identity Customer Data Service Extensions</name>
     <url>http://wso2.org</url>
